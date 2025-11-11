@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { base44 } from '@/api/base44Client';
 
 // Fix Leaflet default icon issue
 if (typeof window !== 'undefined') {
@@ -129,6 +130,9 @@ const COMMUNITY_POSTS = [
 ];
 
 export default function Home() {
+  const [user, setUser] = useState(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  
   const [income, setIncome] = useState('');
   const [expenses, setExpenses] = useState('');
   const [balance, setBalance] = useState(null);
@@ -146,7 +150,7 @@ export default function Home() {
   const [goalsSet, setGoalsSet] = useState(false);
   
   const [walletAddress, setWalletAddress] = useState(null);
-  const [walletSeed, setWalletSeed] = useState(null);
+  const [walletSeed, setWalletSeed] = useState(null); // This is intentionally not persisted for security
   const [isConnecting, setIsConnecting] = useState(false);
   const [xrplTransactionDone, setXrplTransactionDone] = useState(false);
   const [isSimulatingTx, setIsSimulatingTx] = useState(false);
@@ -163,6 +167,75 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [xrplLoaded, setXrplLoaded] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Load user data on mount
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      setIsLoadingUser(true);
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      
+      // Load saved data
+      if (currentUser.monthly_income) setIncome(currentUser.monthly_income.toString());
+      if (currentUser.monthly_expenses) setExpenses(currentUser.monthly_expenses.toString());
+      if (currentUser.monthly_balance !== undefined) setBalance(currentUser.monthly_balance);
+      
+      if (currentUser.goals && currentUser.goals.length > 0) {
+        setGoals(currentUser.goals);
+        if (currentUser.goals.filter(g => g.trim() !== '').length >= 3) {
+          setGoalsSet(true);
+        }
+      } else {
+        setGoals(['', '', '']); // Ensure goals array is initialized if empty
+      }
+      if (currentUser.goals_completed) setGoalsSet(true); // Redundant with above but keeps consistency
+
+      if (currentUser.xrpl_wallet_address) setWalletAddress(currentUser.xrpl_wallet_address);
+      
+      if (currentUser.mission_explorer) {
+        setConverterUsed(true);
+        // Note: convertedEuro and localAmount are not persisted, so conversion results
+        // will not be displayed on reload unless re-calculated.
+      }
+      if (currentUser.mission_xrpl) setXrplTransactionDone(true);
+      
+      setMintedNFTs({
+        smartSaver: currentUser.nft_smart_saver || false,
+        explorer: currentUser.nft_explorer || false,
+        planner: currentUser.nft_planner || false,
+        budgetExplorer: currentUser.nft_budget_explorer || false
+      });
+      
+      if (currentUser.selected_city && CITY_COSTS[currentUser.selected_city]) setSelectedCity(currentUser.selected_city);
+      if (currentUser.local_currency) setLocalCurrency(currentUser.local_currency);
+      
+    } catch (err) {
+      console.error('Error loading user data:', err);
+      // Handle scenario where user is not logged in or session expired
+      // For this demo, we'll just allow them to use the app without persistence.
+    } finally {
+      setIsLoadingUser(false);
+    }
+  };
+
+  const saveUserData = async (data) => {
+    if (!user) {
+      console.warn("User not logged in, data will not be saved.");
+      return;
+    }
+    try {
+      await base44.auth.updateMe(data);
+      // Optionally update local user state if needed
+      setUser(prevUser => ({ ...prevUser, ...data }));
+    } catch (err) {
+      console.error('Error saving user data:', err);
+      setError('Failed to save data. Please try again.');
+    }
+  };
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -184,12 +257,20 @@ export default function Home() {
     };
   }, []);
 
-  const calculateBalance = () => {
+  const calculateBalance = async () => {
     const inc = parseFloat(income) || 0;
     const exp = parseFloat(expenses) || 0;
     const bal = inc - exp;
     setBalance(bal);
     setError(null);
+    
+    // Save to database
+    await saveUserData({
+      monthly_income: inc,
+      monthly_expenses: exp,
+      monthly_balance: bal,
+      mission_smart_saver: bal > 50
+    });
     
     if (bal > 50) {
       setShowConfetti(true);
@@ -214,6 +295,11 @@ export default function Home() {
         setConvertedEuro(converted);
         setConverterUsed(true);
         
+        await saveUserData({
+          local_currency: localCurrency,
+          mission_explorer: true
+        });
+        
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       } else {
@@ -224,6 +310,11 @@ export default function Home() {
         const amount = parseFloat(localAmount) || 0;
         setConvertedEuro(amount * fallbackRate);
         setConverterUsed(true);
+        
+        await saveUserData({
+          local_currency: localCurrency,
+          mission_explorer: true
+        });
       }
     } catch (err) {
       console.error('Exchange rate API error:', err);
@@ -234,15 +325,28 @@ export default function Home() {
       const amount = parseFloat(localAmount) || 0;
       setConvertedEuro(amount * fallbackRate);
       setConverterUsed(true);
+      
+      await saveUserData({
+        local_currency: localCurrency,
+        mission_explorer: true
+      });
     } finally {
       setIsLoadingRate(false);
     }
   };
 
-  const handleSetGoals = () => {
+  const handleSetGoals = async () => {
     const filledGoals = goals.filter(g => g.trim() !== '');
     if (filledGoals.length >= 3) {
       setGoalsSet(true);
+      
+      // Save to database
+      await saveUserData({
+        goals: goals,
+        goals_completed: true,
+        mission_planner: true
+      });
+      
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
     } else {
@@ -260,8 +364,14 @@ export default function Home() {
       setIsConnecting(true);
       const wallet = window.xrpl.Wallet.generate();
       setWalletAddress(wallet.address);
-      setWalletSeed(wallet.seed);
+      setWalletSeed(wallet.seed); // Keep seed in state for session, not persisted
       setError(null);
+      
+      // Save wallet address to database (NOT the seed for security!)
+      await saveUserData({
+        xrpl_wallet_address: wallet.address
+      });
+      
     } catch (err) {
       setError('Failed to generate wallet: ' + err.message);
     } finally {
@@ -276,7 +386,7 @@ export default function Home() {
     }
 
     if (!walletSeed) {
-      setError('Please generate a wallet first');
+      setError('Please generate a wallet first or ensure your session is active');
       return;
     }
 
@@ -292,7 +402,7 @@ export default function Home() {
       try {
         await client.fundWallet(wallet);
       } catch (e) {
-        console.log('Wallet funding skipped or already funded');
+        console.log('Wallet funding skipped or already funded (Testnet only)');
       }
 
       // Simulate a symbolic cross-border payment
@@ -318,6 +428,11 @@ export default function Home() {
       if (result.result.meta.TransactionResult === 'tesSUCCESS') {
         setXrplTransactionDone(true);
         setTxHash(result.result.hash);
+        
+        await saveUserData({
+          mission_xrpl: true
+        });
+        
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 5000);
       } else {
@@ -340,7 +455,7 @@ export default function Home() {
     }
 
     if (!walletSeed) {
-      setError('Please generate a wallet first');
+      setError('Please generate a wallet first or ensure your session is active');
       return;
     }
 
@@ -356,7 +471,7 @@ export default function Home() {
       try {
         await client.fundWallet(wallet);
       } catch (e) {
-        console.log('Wallet funding skipped or already funded');
+        console.log('Wallet funding skipped or already funded (Testnet only)');
       }
 
       const nftData = {
@@ -403,6 +518,18 @@ export default function Home() {
 
       if (result.result.meta.TransactionResult === 'tesSUCCESS') {
         setMintedNFTs(prev => ({ ...prev, [nftType]: true }));
+        
+        const nftFieldMap = {
+          smartSaver: 'nft_smart_saver',
+          explorer: 'nft_explorer',
+          planner: 'nft_planner',
+          budgetExplorer: 'nft_budget_explorer'
+        };
+        
+        await saveUserData({
+          [nftFieldMap[nftType]]: true
+        });
+        
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 5000);
       } else {
@@ -418,6 +545,11 @@ export default function Home() {
     }
   };
 
+  const handleCityChange = async (city) => {
+    setSelectedCity(city);
+    await saveUserData({ selected_city: city });
+  };
+
   const getSpendingPercentage = () => {
     if (!income || !expenses) return 0;
     return Math.min((parseFloat(expenses) / parseFloat(income)) * 100, 100);
@@ -430,7 +562,7 @@ export default function Home() {
   };
 
   const getBudgetCoachAdvice = () => {
-    if (!balance) return null;
+    if (balance === null) return null;
     
     const cityData = CITY_COSTS[selectedCity];
     const difference = balance - cityData.avgCost;
@@ -494,7 +626,7 @@ export default function Home() {
       id: 'explorer',
       title: 'Currency Explorer',
       description: 'Convert your local currency',
-      completed: converterUsed && convertedEuro !== null,
+      completed: converterUsed && convertedEuro !== null, // Mission is completed if converter was used, even if convertedEuro isn't displayed on reload
       icon: Globe,
       color: 'purple',
       nftType: 'explorer',
@@ -524,6 +656,23 @@ export default function Home() {
 
   const budgetCoach = getBudgetCoachAdvice();
   const cityData = CITY_COSTS[selectedCity];
+
+  if (isLoadingUser) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="inline-block mb-4"
+          >
+            <Zap className="w-12 h-12 text-cyan-400" />
+          </motion.div>
+          <p className="text-cyan-400 font-black text-xl tracking-wider">LOADING CAMPUSFI...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-black">
@@ -688,6 +837,9 @@ export default function Home() {
               <div className="px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full">
                 <span className="text-yellow-400 text-xs font-bold">💎 NFT BADGES</span>
               </div>
+              <div className="px-3 py-1 bg-green-500/20 border border-green-500 rounded-full">
+                <span className="text-green-400 text-xs font-bold">💾 AUTO-SAVE</span>
+              </div>
             </div>
 
             <motion.div
@@ -699,6 +851,19 @@ export default function Home() {
               "Master your money, conquer the world 🌍"
             </motion.div>
           </motion.div>
+
+          {/* Welcome message with user name */}
+          {user && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 text-center"
+            >
+              <p className="text-cyan-400 font-bold text-lg">
+                Welcome back, <span className="text-pink-400">{user.full_name || 'Explorer'}</span>! 🚀
+              </p>
+            </motion.div>
+          )}
 
           {/* Error Alert */}
           <AnimatePresence>
@@ -801,6 +966,37 @@ export default function Home() {
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* City Selector */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <Card className="bg-black/40 backdrop-blur-sm border-2 border-purple-500/50">
+              <CardHeader className="border-b-2 border-purple-500/30">
+                <CardTitle className="flex items-center gap-2 text-lg text-purple-400 font-black tracking-wide">
+                  <MapPin className="w-5 h-5" />
+                  CHOOSE YOUR STUDY CITY
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <Select value={selectedCity} onValueChange={handleCityChange}>
+                  <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-12 font-bold">
+                    <SelectValue placeholder="Select a city" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-2 border-purple-500">
+                    {Object.entries(CITY_COSTS).map(([key, data]) => (
+                      <SelectItem key={key} value={key} className="text-purple-100 font-bold">
+                        {data.flag} {data.name}, {data.country} (Avg. Cost: €{data.avgCost}/mo)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+          </motion.div>
+
 
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Left Column */}
@@ -1331,10 +1527,12 @@ export default function Home() {
                             <p className="text-xs text-green-400 mb-1 font-bold">ADDRESS</p>
                             <p className="text-green-300 font-mono text-xs break-all">{walletAddress}</p>
                           </div>
-                          <div className="bg-black/70 p-2 rounded border-2 border-yellow-500/50">
-                            <p className="text-xs text-yellow-400 mb-1 font-bold">🔑 SECRET KEY</p>
-                            <p className="text-yellow-300 font-mono text-xs break-all">{walletSeed}</p>
-                          </div>
+                          {walletSeed && ( // Only display seed if generated in current session
+                            <div className="bg-black/70 p-2 rounded border-2 border-yellow-500/50">
+                              <p className="text-xs text-yellow-400 mb-1 font-bold">🔑 SECRET KEY (KEEP SAFE! DO NOT SHARE OR LOSE!)</p>
+                              <p className="text-yellow-300 font-mono text-xs break-all">{walletSeed}</p>
+                            </div>
+                          )}
                         </div>
 
                         <div className="border-2 border-purple-400 bg-purple-900/30 rounded-xl p-3 backdrop-blur-sm">
