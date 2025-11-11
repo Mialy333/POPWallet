@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins, Globe, Target, CheckCircle2, Lock, Plane, Map, MapPin, GraduationCap, Briefcase, BadgeCheck } from "lucide-react";
+import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins, Globe, Target, CheckCircle2, Lock, Plane, Map, MapPin, GraduationCap, Briefcase, BadgeCheck, MessageCircle, ThumbsUp, MapPinned, Lightbulb, TrendingDown, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -20,23 +19,79 @@ const CURRENCY_RATES = {
   NGN: { symbol: '₦', rate: 870, name: 'Nigerian Naira', flag: '🇳🇬', country: 'Nigeria' }
 };
 
+const CITY_COSTS = {
+  lisbon: { name: 'Lisbon', country: 'Portugal', avgCost: 680, flag: '🇵🇹' },
+  paris: { name: 'Paris', country: 'France', avgCost: 950, flag: '🇫🇷' },
+  madrid: { name: 'Madrid', country: 'Spain', avgCost: 720, flag: '🇪🇸' },
+  berlin: { name: 'Berlin', country: 'Germany', avgCost: 850, flag: '🇩🇪' },
+  london: { name: 'London', country: 'UK', avgCost: 1200, flag: '🇬🇧' },
+  rome: { name: 'Rome', country: 'Italy', avgCost: 780, flag: '🇮🇹' }
+};
+
+const COMMUNITY_POSTS = [
+  {
+    id: 1,
+    author: 'Maria S.',
+    avatar: '👩‍🎓',
+    city: 'Lisbon',
+    tip: 'Student discounts at Pingo Doce supermarket every Tuesday! Save 15% on groceries 🛒',
+    likes: 42,
+    time: '2h ago'
+  },
+  {
+    id: 2,
+    author: 'Ahmed K.',
+    avatar: '👨‍🎓',
+    city: 'Paris',
+    tip: 'Use the Navigo student pass - unlimited metro for €38/month instead of €75! 🚇',
+    likes: 38,
+    time: '5h ago'
+  },
+  {
+    id: 3,
+    author: 'Sofia R.',
+    avatar: '👩‍💼',
+    city: 'Madrid',
+    tip: 'Menú del día at local restaurants = 3-course meal for €10-12. Way cheaper than cooking! 🍽️',
+    likes: 55,
+    time: '1d ago'
+  },
+  {
+    id: 4,
+    author: 'Chen W.',
+    avatar: '👨‍💻',
+    city: 'Berlin',
+    tip: 'Mensa (university cafeteria) meals are €2-4 with student ID. Eat there daily! 🍜',
+    likes: 67,
+    time: '1d ago'
+  },
+  {
+    id: 5,
+    author: 'Priya M.',
+    avatar: '👩‍🔬',
+    city: 'London',
+    tip: 'Tesco Express has 50% off ready meals after 8pm. Perfect for budget dinners! 🌙',
+    likes: 81,
+    time: '2d ago'
+  }
+];
+
 export default function Home() {
   const [income, setIncome] = useState('');
   const [expenses, setExpenses] = useState('');
   const [balance, setBalance] = useState(null);
   
-  // Currency converter
+  const [selectedCity, setSelectedCity] = useState('lisbon');
+  
   const [fromCurrency, setFromCurrency] = useState('EUR');
   const [toCurrency, setToCurrency] = useState('USD');
   const [convertAmount, setConvertAmount] = useState('');
   const [convertedAmount, setConvertedAmount] = useState(null);
   const [converterUsed, setConverterUsed] = useState(false);
   
-  // Goals
   const [goals, setGoals] = useState(['', '', '']);
   const [goalsSet, setGoalsSet] = useState(false);
   
-  // Wallet & NFT
   const [walletAddress, setWalletAddress] = useState(null);
   const [walletSeed, setWalletSeed] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -51,7 +106,6 @@ export default function Home() {
   const [xrplLoaded, setXrplLoaded] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Load xrpl.js from CDN
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/xrpl@2.11.0/build/xrpl-latest-min.js';
@@ -214,6 +268,47 @@ export default function Home() {
     return 'from-red-400 to-pink-400';
   };
 
+  const getBudgetCoachAdvice = () => {
+    if (!balance) return null;
+    
+    const cityData = CITY_COSTS[selectedCity];
+    const difference = balance - cityData.avgCost;
+    
+    if (difference >= 200) {
+      return {
+        type: 'excellent',
+        icon: Trophy,
+        color: 'green',
+        message: `Amazing! You're €${difference.toFixed(0)} above ${cityData.name}'s average. You're living comfortably! 🌟`,
+        advice: 'Consider investing your extra savings or setting up an emergency fund.'
+      };
+    } else if (difference >= 0) {
+      return {
+        type: 'good',
+        icon: CheckCircle2,
+        color: 'blue',
+        message: `Good job! You're €${difference.toFixed(0)} above ${cityData.name}'s average cost.`,
+        advice: 'You\'re on track! Keep monitoring your expenses to maintain this buffer.'
+      };
+    } else if (difference >= -100) {
+      return {
+        type: 'warning',
+        icon: AlertCircle,
+        color: 'yellow',
+        message: `Careful! You're €${Math.abs(difference).toFixed(0)} below ${cityData.name}'s average.`,
+        advice: 'Look for ways to cut expenses or increase income. Check the community tips below!'
+      };
+    } else {
+      return {
+        type: 'alert',
+        icon: TrendingDown,
+        color: 'red',
+        message: `Alert! You're €${Math.abs(difference).toFixed(0)} below ${cityData.name}'s average cost.`,
+        advice: 'Take immediate action: apply for part-time work, seek university financial aid, or reduce non-essential expenses.'
+      };
+    }
+  };
+
   const missions = [
     {
       id: 'smartSaver',
@@ -244,46 +339,10 @@ export default function Home() {
     }
   ];
 
+  const budgetCoach = getBudgetCoachAdvice();
+
   return (
-    <div className="min-h-screen relative overflow-hidden bg-black">
-      {/* Animated Retro Grid Background */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px',
-          animation: 'grid-move 20s linear infinite'
-        }}></div>
-      </div>
-
-      {/* Floating Travel Icons */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {['✈️', '🌍', '🎓', '🗺️', '🧳', '📚', '🏛️', '🎒'].map((icon, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-3xl opacity-20"
-            initial={{ 
-              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000), 
-              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
-            }}
-            animate={{
-              x: [null, Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000)],
-              y: [null, Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000)],
-              rotate: [0, 360]
-            }}
-            transition={{
-              duration: Math.random() * 20 + 20,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-          >
-            {icon}
-          </motion.div>
-        ))}
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Confetti Effect */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
@@ -309,111 +368,40 @@ export default function Home() {
         </div>
       )}
 
-      <style jsx>{`
-        @keyframes grid-move {
-          0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
-          100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
-        }
-        @keyframes neon-glow {
-          0%, 100% { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff; }
-          50% { text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff, 0 0 50px #ff00ff; }
-        }
-        @keyframes pulse-border {
-          0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.1); }
-          50% { box-shadow: 0 0 30px rgba(255, 0, 255, 0.5), inset 0 0 30px rgba(255, 0, 255, 0.1); }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-      `}</style>
-
-      <div className="relative z-10 p-4 md:p-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Retro Header with Travel Theme - MODIFIED LOGO */}
+      <div className="relative z-10 p-4 md:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center mb-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-6 md:mb-8"
           >
-            {/* Travel Badge - UPDATED: Student Hat above Globe */}
-            <motion.div 
-              className="inline-block mb-4"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              <div className="relative">
-                <div className="absolute inset-0 bg-cyan-500 blur-xl opacity-50"></div>
-                <div className="relative bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 p-1 rounded-2xl">
-                  <div className="bg-black p-4 rounded-xl border-2 border-dashed border-cyan-400/50">
-                    <div className="flex flex-col items-center gap-2">
-                      <GraduationCap className="w-10 h-10 text-cyan-400" />
-                      <Globe className="w-10 h-10 text-pink-400" />
-                    </div>
-                  </div>
-                </div>
+            <div className="inline-flex items-center justify-center mb-4 bg-white rounded-2xl p-4 shadow-lg">
+              <div className="flex flex-col items-center gap-2">
+                <GraduationCap className="w-12 h-12 text-blue-600" />
+                <Globe className="w-12 h-12 text-purple-600" />
               </div>
-            </motion.div>
+            </div>
             
-            <motion.h1 
-              className="text-4xl md:text-6xl font-black mb-2 tracking-wider"
-              style={{
-                fontFamily: 'Arial Black, sans-serif',
-                background: 'linear-gradient(45deg, #00ffff, #ff00ff, #ffff00)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                animation: 'neon-glow 2s ease-in-out infinite'
-              }}
-            >
-              CAMPUS<span className="text-pink-500">Fi</span>
-            </motion.h1>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              CampusFi
+            </h1>
             
-            <div className="flex items-center justify-center gap-2 text-cyan-400 text-xs md:text-sm font-bold tracking-widest mb-3">
-              <Briefcase className="w-4 h-4" />
-              <span className="uppercase">Your Study Abroad Financial Companion</span>
-              <Briefcase className="w-4 h-4" />
-            </div>
+            <p className="text-gray-600 text-sm md:text-base font-medium">
+              Your Study Abroad Financial Companion
+            </p>
 
-            {/* Country Flags Animation */}
-            <div className="flex flex-wrap justify-center gap-2 mb-4">
-              {Object.values(CURRENCY_RATES).map((curr, i) => (
-                <motion.div
-                  key={curr.country}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="text-2xl"
-                  style={{ animation: `float ${2 + i * 0.3}s ease-in-out infinite` }}
-                >
-                  {curr.flag}
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-2">
-              <div className="px-3 py-1 bg-cyan-500/20 border border-cyan-500 rounded-full">
-                <span className="text-cyan-400 text-xs font-bold">🌍 8 COUNTRIES</span>
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              <div className="px-3 py-1 bg-blue-100 rounded-full">
+                <span className="text-blue-700 text-xs font-bold">🌍 8 Countries</span>
               </div>
-              <div className="px-3 py-1 bg-purple-500/20 border border-purple-500 rounded-full">
-                <span className="text-purple-400 text-xs font-bold">✈️ STUDY ABROAD</span>
+              <div className="px-3 py-1 bg-purple-100 rounded-full">
+                <span className="text-purple-700 text-xs font-bold">✈️ Study Abroad</span>
               </div>
-              <div className="px-3 py-1 bg-pink-500/20 border border-pink-500 rounded-full">
-                <span className="text-pink-400 text-xs font-bold">🎓 STUDENT LIFE</span>
-              </div>
-              <div className="px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full">
-                <span className="text-yellow-400 text-xs font-bold">💎 XRP NFT</span>
+              <div className="px-3 py-1 bg-pink-100 rounded-full">
+                <span className="text-pink-700 text-xs font-bold">💎 XRP NFTs</span>
               </div>
             </div>
-
-            {/* Motivational Quote */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-4 text-gray-400 text-sm italic"
-            >
-              "Master your money, conquer the world 🌍"
-            </motion.div>
           </motion.div>
 
           {/* Error Alert */}
@@ -425,263 +413,307 @@ export default function Home() {
                 exit={{ opacity: 0, y: -20 }}
                 className="mb-6"
               >
-                <div className="bg-red-500/10 border-2 border-red-500 rounded-xl p-4 backdrop-blur-sm">
-                  <p className="text-red-400 font-bold text-center">⚠️ {error}</p>
-                </div>
+                <Alert className="bg-red-50 border-red-200">
+                  <AlertDescription className="text-red-800">
+                    ⚠️ {error}
+                  </AlertDescription>
+                </Alert>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Mission Progress Dashboard */}
+          {/* Mission Progress */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-2xl blur opacity-50"></div>
-              <div className="relative bg-black/90 backdrop-blur-xl border-2 border-yellow-500 rounded-2xl p-4 md:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-yellow-400 font-black text-xl md:text-2xl uppercase tracking-wider flex items-center gap-2">
-                    <Map className="w-6 h-6" />
-                    Your Study Abroad Journey
-                  </h2>
-                  <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full">
-                    <MapPin className="w-4 h-4 text-yellow-400" />
-                    <span className="text-yellow-400 text-xs font-bold">
-                      {missions.filter(m => m.completed).length}/3 Destinations
-                    </span>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-3 gap-4">
+            <Card className="bg-white shadow-lg border-0">
+              <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50 border-b">
+                <CardTitle className="flex items-center gap-2 text-lg md:text-xl text-gray-800">
+                  <Map className="w-5 h-5 text-orange-600" />
+                  Your Study Abroad Journey
+                  <span className="ml-auto text-sm bg-orange-100 px-3 py-1 rounded-full text-orange-700">
+                    {missions.filter(m => m.completed).length}/3 Complete
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {missions.map((mission, index) => (
                     <motion.div
                       key={mission.id}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.1 }}
-                      className={`relative border-2 rounded-xl p-4 ${
+                      className={`border-2 rounded-xl p-4 ${
                         mission.completed 
-                          ? `border-${mission.color}-400 bg-${mission.color}-500/10` 
-                          : 'border-gray-600 bg-gray-900/50'
+                          ? 'border-green-300 bg-green-50' 
+                          : 'border-gray-200 bg-gray-50'
                       }`}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className={`p-2 rounded-lg ${
-                          mission.completed ? `bg-${mission.color}-500/20` : 'bg-gray-800'
+                          mission.completed ? 'bg-green-100' : 'bg-gray-200'
                         }`}>
                           <mission.icon className={`w-5 h-5 ${
-                            mission.completed ? `text-${mission.color}-400` : 'text-gray-500'
+                            mission.completed ? 'text-green-600' : 'text-gray-400'
                           }`} />
                         </div>
                         {mission.completed ? (
-                          <div className="flex items-center gap-1 px-2 py-1 bg-green-500/20 border border-green-500 rounded-full">
-                            <CheckCircle2 className="w-3 h-3 text-green-400" />
-                            <span className="text-green-400 text-xs font-bold">DONE</span>
+                          <div className="flex items-center gap-1 px-2 py-1 bg-green-200 rounded-full">
+                            <CheckCircle2 className="w-3 h-3 text-green-700" />
+                            <span className="text-green-700 text-xs font-bold">DONE</span>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded-full">
+                          <div className="flex items-center gap-1 px-2 py-1 bg-gray-200 rounded-full">
                             <Lock className="w-3 h-3 text-gray-500" />
                             <span className="text-gray-500 text-xs font-bold">LOCKED</span>
                           </div>
                         )}
                       </div>
-                      <h3 className={`font-black text-sm uppercase ${
-                        mission.completed ? `text-${mission.color}-400` : 'text-gray-500'
+                      <h3 className={`font-bold text-sm ${
+                        mission.completed ? 'text-green-700' : 'text-gray-500'
                       }`}>
                         🎯 {mission.title}
                       </h3>
-                      <p className="text-gray-400 text-xs mt-1">{mission.description}</p>
+                      <p className="text-gray-600 text-xs mt-1">{mission.description}</p>
                       {mission.completed && !mintedNFTs[mission.nftType] && walletAddress && (
                         <Button
                           onClick={() => mintNFT(mission.nftType)}
                           disabled={currentlyMinting === mission.nftType}
-                          className="w-full mt-3 h-8 text-xs font-bold"
-                          style={{
-                            background: `linear-gradient(45deg, var(--${mission.color}-500), var(--${mission.color}-600))`
-                          }}
+                          className="w-full mt-3 h-8 text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                         >
                           {currentlyMinting === mission.nftType ? '⚡ Minting...' : '💎 Claim NFT Badge'}
                         </Button>
                       )}
                       {mintedNFTs[mission.nftType] && (
                         <div className="mt-3 text-center">
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full text-yellow-400 text-xs font-bold">
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 text-xs font-bold">
                             <Award className="w-3 h-3" />
-                            NFT BADGE EARNED
+                            NFT EARNED
                           </span>
                         </div>
                       )}
                     </motion.div>
                   ))}
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Left Column */}
-            <div className="space-y-6">
-              {/* Budget Calculator Card */}
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Left Column - Budget & Currency */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Budget Calculator */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
               >
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-75 animate-pulse"></div>
-                  
-                  <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-cyan-500 shadow-2xl overflow-hidden" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
-                    <div className="absolute inset-0 pointer-events-none opacity-10" style={{
-                      backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.5) 2px, rgba(0, 255, 255, 0.5) 4px)'
-                    }}></div>
-
-                    <CardHeader className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-b-2 border-cyan-500">
-                      <CardTitle className="flex items-center gap-3 text-cyan-400 text-lg md:text-xl font-black uppercase tracking-wider">
-                        <div className="p-2 bg-cyan-500/20 rounded-lg">
-                          <Coins className="w-5 h-5" />
-                        </div>
-                        Student Budget
-                        <div className="ml-auto flex items-center gap-2">
-                          <span className="text-xs bg-cyan-500/30 px-2 py-1 rounded-full border border-cyan-500">
-                            🎯 MISSION 1
-                          </span>
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    
-                    <CardContent className="p-4 md:p-6 space-y-4">
-                      <div className="space-y-3">
-                        <div className="relative">
-                          <Label className="text-cyan-400 font-bold uppercase text-xs tracking-wider mb-2 flex items-center gap-2">
-                            <TrendingUp className="w-3 h-3" />
-                            Monthly Income (€)
-                          </Label>
-                          <Input
-                            type="number"
-                            placeholder="1000"
-                            value={income}
-                            onChange={(e) => setIncome(e.target.value)}
-                            className="bg-black/50 border-2 border-cyan-500/50 focus:border-cyan-400 text-cyan-300 text-lg font-bold placeholder:text-cyan-800 rounded-xl h-12"
-                          />
-                          <div className="absolute right-3 top-[38px] text-xl">💶</div>
-                        </div>
-
-                        <div className="relative">
-                          <Label className="text-pink-400 font-bold uppercase text-xs tracking-wider mb-2 flex items-center gap-2">
-                            <Zap className="w-3 h-3" />
-                            Monthly Expenses (€)
-                          </Label>
-                          <Input
-                            type="number"
-                            placeholder="800"
-                            value={expenses}
-                            onChange={(e) => setExpenses(e.target.value)}
-                            className="bg-black/50 border-2 border-pink-500/50 focus:border-pink-400 text-pink-300 text-lg font-bold placeholder:text-pink-800 rounded-xl h-12"
-                          />
-                          <div className="absolute right-3 top-[38px] text-xl">🏠</div>
-                        </div>
+                <Card className="bg-white shadow-lg border-0">
+                  <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 border-b">
+                    <CardTitle className="flex items-center gap-2 text-lg md:text-xl text-gray-800">
+                      <Coins className="w-5 h-5 text-blue-600" />
+                      Student Budget Calculator
+                      <span className="ml-auto text-xs bg-cyan-100 px-3 py-1 rounded-full text-cyan-700">
+                        Mission 1
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 md:p-6 space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-gray-700 font-semibold text-sm mb-2 flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-green-600" />
+                          Monthly Income (€)
+                        </Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g., 1000"
+                          value={income}
+                          onChange={(e) => setIncome(e.target.value)}
+                          className="border-2 border-gray-200 focus:border-blue-400 h-12 text-lg"
+                        />
                       </div>
 
-                      {/* Spending Progress Bar */}
-                      {income && expenses && (
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-xs font-bold">
-                            <span className="text-gray-400">💰 Budget Usage</span>
-                            <span className={`${
-                              getSpendingPercentage() < 50 ? 'text-green-400' :
-                              getSpendingPercentage() < 75 ? 'text-yellow-400' :
-                              'text-red-400'
-                            }`}>
-                              {getSpendingPercentage().toFixed(0)}%
-                            </span>
-                          </div>
-                          <div className="relative h-6 bg-black/50 rounded-full overflow-hidden border-2 border-gray-700">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${getSpendingPercentage()}%` }}
-                              className={`h-full bg-gradient-to-r ${getProgressColor(getSpendingPercentage())} relative`}
-                              style={{
-                                boxShadow: '0 0 20px rgba(0, 255, 0, 0.8)'
-                              }}
-                            >
-                              <div className="absolute inset-0 opacity-30" style={{
-                                backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(255, 255, 255, 0.5) 5px, rgba(255, 255, 255, 0.5) 10px)'
-                              }}></div>
-                            </motion.div>
-                          </div>
-                          <p className="text-xs text-gray-400 text-center">
-                            {getSpendingPercentage() < 50 ? '✅ Great! Living below your means' :
-                             getSpendingPercentage() < 75 ? '⚠️ Watch your spending carefully' :
-                             '🚨 Budget alert! Time to cut expenses'}
-                          </p>
+                      <div>
+                        <Label className="text-gray-700 font-semibold text-sm mb-2 flex items-center gap-2">
+                          <TrendingDown className="w-4 h-4 text-red-600" />
+                          Monthly Expenses (€)
+                        </Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g., 800"
+                          value={expenses}
+                          onChange={(e) => setExpenses(e.target.value)}
+                          className="border-2 border-gray-200 focus:border-blue-400 h-12 text-lg"
+                        />
+                      </div>
+                    </div>
+
+                    {income && expenses && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm font-semibold text-gray-700">
+                          <span>Budget Usage</span>
+                          <span className={`${
+                            getSpendingPercentage() < 50 ? 'text-green-600' :
+                            getSpendingPercentage() < 75 ? 'text-yellow-600' :
+                            'text-red-600'
+                          }`}>
+                            {getSpendingPercentage().toFixed(0)}%
+                          </span>
                         </div>
-                      )}
-
-                      <Button 
-                        onClick={calculateBalance}
-                        className="w-full h-12 text-base font-black uppercase tracking-wider relative overflow-hidden group"
-                        style={{
-                          background: 'linear-gradient(45deg, #00ffff, #ff00ff)',
-                          border: 'none'
-                        }}
-                      >
-                        <span className="relative z-10 flex items-center justify-center gap-2 text-black">
-                          <Trophy className="w-5 h-5" />
-                          Calculate Savings
-                        </span>
-                      </Button>
-
-                      {/* Balance Result */}
-                      <AnimatePresence>
-                        {balance !== null && (
+                        <div className="relative h-6 bg-gray-100 rounded-full overflow-hidden">
                           <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            className="relative"
-                          >
-                            <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-cyan-400 rounded-2xl blur opacity-75"></div>
-                            <div className="relative bg-black border-2 border-green-400 rounded-2xl p-4 overflow-hidden">
-                              <div className="relative">
-                                <p className="text-green-400 font-bold uppercase text-xs mb-2 flex items-center gap-1">
-                                  <Sparkles className="w-3 h-3" />
-                                  Monthly Savings Power
-                                </p>
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  className={`text-4xl font-black text-center ${balance > 0 ? 'text-green-400' : 'text-red-400'}`}
-                                  style={{
-                                    textShadow: balance > 0 
-                                      ? '0 0 20px rgba(0, 255, 0, 0.8)'
-                                      : '0 0 20px rgba(255, 0, 0, 0.8)'
-                                  }}
-                                >
-                                  €{Math.abs(balance).toFixed(2)}
-                                </motion.div>
-                                {balance > 50 && (
-                                  <div className="text-center mt-2">
-                                    <div className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold mb-2">
-                                      <Trophy className="w-3 h-3" />
-                                      MISSION 1 COMPLETE!
-                                    </div>
-                                    <p className="text-green-300 text-xs">🎉 You're ready for your study abroad adventure!</p>
-                                  </div>
-                                )}
-                                {balance > 0 && balance <= 50 && (
-                                  <p className="text-center text-yellow-400 text-xs mt-2">
-                                    💪 Save €{(51 - balance).toFixed(2)} more to unlock your first NFT badge!
-                                  </p>
-                                )}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${getSpendingPercentage()}%` }}
+                            className={`h-full bg-gradient-to-r ${getProgressColor(getSpendingPercentage())}`}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-600 text-center">
+                          {getSpendingPercentage() < 50 ? '✅ Great! Living below your means' :
+                           getSpendingPercentage() < 75 ? '⚠️ Watch your spending carefully' :
+                           '🚨 Budget alert! Time to cut expenses'}
+                        </p>
+                      </div>
+                    )}
+
+                    <Button 
+                      onClick={calculateBalance}
+                      className="w-full h-12 text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                    >
+                      <Trophy className="w-5 h-5 mr-2" />
+                      Calculate Savings
+                    </Button>
+
+                    {balance !== null && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={`border-2 rounded-xl p-4 ${
+                          balance > 0 ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'
+                        }`}
+                      >
+                        <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          Monthly Savings
+                        </p>
+                        <div className={`text-4xl font-black text-center ${
+                          balance > 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          €{Math.abs(balance).toFixed(2)}
+                        </div>
+                        {balance > 50 && (
+                          <div className="text-center mt-3">
+                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 text-xs font-bold">
+                              <Trophy className="w-3 h-3" />
+                              MISSION 1 COMPLETE!
+                            </span>
+                            <p className="text-green-700 text-xs mt-2">🎉 Ready for study abroad!</p>
+                          </div>
+                        )}
+                        {balance > 0 && balance <= 50 && (
+                          <p className="text-center text-yellow-700 text-xs mt-2">
+                            💪 Save €{(51 - balance).toFixed(2)} more to unlock NFT!
+                          </p>
+                        )}
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Dynamic Budget Coach */}
+              {balance !== null && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Card className="bg-white shadow-lg border-0">
+                    <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b">
+                      <CardTitle className="flex items-center gap-2 text-lg md:text-xl text-gray-800">
+                        <Lightbulb className="w-5 h-5 text-purple-600" />
+                        Dynamic Budget Coach
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 md:p-6 space-y-4">
+                      <div>
+                        <Label className="text-gray-700 font-semibold text-sm mb-2 flex items-center gap-2">
+                          <MapPinned className="w-4 h-4 text-purple-600" />
+                          Select Your Study City
+                        </Label>
+                        <Select value={selectedCity} onValueChange={setSelectedCity}>
+                          <SelectTrigger className="border-2 border-gray-200 h-12">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(CITY_COSTS).map(([key, data]) => (
+                              <SelectItem key={key} value={key}>
+                                {data.flag} {data.name}, {data.country} - €{data.avgCost}/mo
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {budgetCoach && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`border-2 rounded-xl p-4 ${
+                            budgetCoach.type === 'excellent' ? 'border-green-300 bg-green-50' :
+                            budgetCoach.type === 'good' ? 'border-blue-300 bg-blue-50' :
+                            budgetCoach.type === 'warning' ? 'border-yellow-300 bg-yellow-50' :
+                            'border-red-300 bg-red-50'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`p-2 rounded-lg ${
+                              budgetCoach.type === 'excellent' ? 'bg-green-200' :
+                              budgetCoach.type === 'good' ? 'bg-blue-200' :
+                              budgetCoach.type === 'warning' ? 'bg-yellow-200' :
+                              'bg-red-200'
+                            }`}>
+                              <budgetCoach.icon className={`w-5 h-5 ${
+                                budgetCoach.type === 'excellent' ? 'text-green-700' :
+                                budgetCoach.type === 'good' ? 'text-blue-700' :
+                                budgetCoach.type === 'warning' ? 'text-yellow-700' :
+                                'text-red-700'
+                              }`} />
+                            </div>
+                            <div className="flex-1">
+                              <p className={`font-bold text-sm mb-1 ${
+                                budgetCoach.type === 'excellent' ? 'text-green-800' :
+                                budgetCoach.type === 'good' ? 'text-blue-800' :
+                                budgetCoach.type === 'warning' ? 'text-yellow-800' :
+                                'text-red-800'
+                              }`}>
+                                {budgetCoach.message}
+                              </p>
+                              <p className="text-xs text-gray-700 mt-2">
+                                <strong>Coach Advice:</strong> {budgetCoach.advice}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="grid grid-cols-2 gap-4 text-center">
+                              <div>
+                                <p className="text-xs text-gray-600 mb-1">Your Balance</p>
+                                <p className="text-xl font-bold text-gray-800">€{balance.toFixed(0)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-600 mb-1">City Average</p>
+                                <p className="text-xl font-bold text-gray-800">€{CITY_COSTS[selectedCity].avgCost}</p>
                               </div>
                             </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                          </div>
+                        </motion.div>
+                      )}
                     </CardContent>
                   </Card>
-                </div>
-              </motion.div>
+                </motion.div>
+              )}
 
               {/* Currency Converter */}
               <motion.div
@@ -689,118 +721,107 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-75"></div>
-                  <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-purple-500 overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b-2 border-purple-500">
-                      <CardTitle className="flex items-center gap-3 text-purple-400 text-lg md:text-xl font-black uppercase tracking-wider">
-                        <div className="p-2 bg-purple-500/20 rounded-lg">
-                          <Globe className="w-5 h-5" style={{ animation: 'float 3s ease-in-out infinite' }} />
-                        </div>
-                        World Currency
-                        <div className="ml-auto text-xs bg-purple-500/30 px-2 py-1 rounded-full border border-purple-500">
-                          ✈️ MISSION 2
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 md:p-6 space-y-4">
-                      <div className="text-center mb-2">
-                        <p className="text-xs text-gray-400">🌍 Convert between 8 study destinations</p>
+                <Card className="bg-white shadow-lg border-0">
+                  <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b">
+                    <CardTitle className="flex items-center gap-2 text-lg md:text-xl text-gray-800">
+                      <Globe className="w-5 h-5 text-purple-600" />
+                      Currency Converter
+                      <span className="ml-auto text-xs bg-purple-100 px-3 py-1 rounded-full text-purple-700">
+                        Mission 2
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 md:p-6 space-y-4">
+                    <p className="text-xs text-gray-600 text-center">
+                      🌍 Convert between 8 study destinations
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-gray-700 font-semibold text-xs mb-2 block">
+                          From {CURRENCY_RATES[fromCurrency]?.flag}
+                        </Label>
+                        <Select value={fromCurrency} onValueChange={setFromCurrency}>
+                          <SelectTrigger className="border-2 border-gray-200 h-12">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(CURRENCY_RATES).map(([code, data]) => (
+                              <SelectItem key={code} value={code}>
+                                {data.flag} {code}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label className="text-purple-400 font-bold uppercase text-xs mb-2 flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            From {CURRENCY_RATES[fromCurrency]?.flag}
-                          </Label>
-                          <Select value={fromCurrency} onValueChange={setFromCurrency}>
-                            <SelectTrigger className="bg-black/50 border-2 border-purple-500/50 text-purple-300 font-bold h-12">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(CURRENCY_RATES).map(([code, data]) => (
-                                <SelectItem key={code} value={code}>
-                                  {data.flag} {code} - {data.country}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-pink-400 font-bold uppercase text-xs mb-2 flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            To {CURRENCY_RATES[toCurrency]?.flag}
-                          </Label>
-                          <Select value={toCurrency} onValueChange={setToCurrency}>
-                            <SelectTrigger className="bg-black/50 border-2 border-pink-500/50 text-pink-300 font-bold h-12">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(CURRENCY_RATES).map(([code, data]) => (
-                                <SelectItem key={code} value={code}>
-                                  {data.flag} {code} - {data.country}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      <div>
+                        <Label className="text-gray-700 font-semibold text-xs mb-2 block">
+                          To {CURRENCY_RATES[toCurrency]?.flag}
+                        </Label>
+                        <Select value={toCurrency} onValueChange={setToCurrency}>
+                          <SelectTrigger className="border-2 border-gray-200 h-12">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(CURRENCY_RATES).map(([code, data]) => (
+                              <SelectItem key={code} value={code}>
+                                {data.flag} {code}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      
-                      <Input
-                        type="number"
-                        placeholder="Enter amount to convert"
-                        value={convertAmount}
-                        onChange={(e) => setConvertAmount(e.target.value)}
-                        className="bg-black/50 border-2 border-purple-500/50 text-purple-300 text-lg font-bold rounded-xl h-12"
-                      />
+                    </div>
+                    
+                    <Input
+                      type="number"
+                      placeholder="Enter amount"
+                      value={convertAmount}
+                      onChange={(e) => setConvertAmount(e.target.value)}
+                      className="border-2 border-gray-200 focus:border-purple-400 h-12 text-lg"
+                    />
 
-                      <Button 
-                        onClick={convertCurrency}
-                        className="w-full h-12 text-base font-black uppercase"
-                        style={{
-                          background: 'linear-gradient(45deg, #a855f7, #ec4899)'
-                        }}
+                    <Button 
+                      onClick={convertCurrency}
+                      className="w-full h-12 text-base font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    >
+                      <Plane className="w-4 h-4 mr-2" />
+                      Convert Currency
+                    </Button>
+
+                    {convertedAmount !== null && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="border-2 border-purple-300 bg-purple-50 rounded-xl p-4 text-center"
                       >
-                        <Plane className="w-4 h-4 mr-2" />
-                        Convert Currency
-                      </Button>
-
-                      {convertedAmount !== null && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="bg-purple-500/10 border-2 border-purple-500 rounded-xl p-4 text-center"
-                        >
-                          <div className="flex items-center justify-center gap-2 mb-2 text-3xl">
-                            <span>{CURRENCY_RATES[fromCurrency]?.flag}</span>
-                            <span className="text-purple-400">→</span>
-                            <span>{CURRENCY_RATES[toCurrency]?.flag}</span>
+                        <div className="flex items-center justify-center gap-2 mb-2 text-3xl">
+                          <span>{CURRENCY_RATES[fromCurrency]?.flag}</span>
+                          <span className="text-purple-600">→</span>
+                          <span>{CURRENCY_RATES[toCurrency]?.flag}</span>
+                        </div>
+                        <p className="text-xs font-semibold text-purple-700 mb-1">CONVERTED AMOUNT</p>
+                        <p className="text-3xl font-black text-purple-800">
+                          {CURRENCY_RATES[toCurrency].symbol}{convertedAmount.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-2">
+                          {CURRENCY_RATES[fromCurrency].symbol}{convertAmount} {fromCurrency} = {CURRENCY_RATES[toCurrency].symbol}{convertedAmount.toFixed(2)} {toCurrency}
+                        </p>
+                        {converterUsed && (
+                          <div className="mt-3">
+                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 text-xs font-bold">
+                              <Globe className="w-3 h-3" />
+                              MISSION 2 COMPLETE!
+                            </span>
                           </div>
-                          <p className="text-purple-400 text-xs font-bold mb-1">CONVERTED AMOUNT</p>
-                          <p className="text-3xl font-black text-pink-400">
-                            {CURRENCY_RATES[toCurrency].symbol}{convertedAmount.toFixed(2)}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-2">
-                            {CURRENCY_RATES[fromCurrency].symbol}{convertAmount} {fromCurrency} = {CURRENCY_RATES[toCurrency].symbol}{convertedAmount.toFixed(2)} {toCurrency}
-                          </p>
-                          {converterUsed && (
-                            <div className="mt-3">
-                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold">
-                                <Globe className="w-3 h-3" />
-                                MISSION 2 COMPLETE!
-                              </span>
-                              <p className="text-green-300 text-xs mt-2">🌍 You're a global financial explorer!</p>
-                            </div>
-                          )}
-                        </motion.div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
               </motion.div>
             </div>
 
-            {/* Right Column */}
+            {/* Right Column - Goals, Wallet & Community */}
             <div className="space-y-6">
               {/* Monthly Goals */}
               <motion.div
@@ -808,254 +829,262 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl blur opacity-75"></div>
-                  <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-pink-500 overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-pink-500/20 to-orange-500/20 border-b-2 border-pink-500">
-                      <CardTitle className="flex items-center gap-3 text-pink-400 text-lg md:text-xl font-black uppercase tracking-wider">
-                        <div className="p-2 bg-pink-500/20 rounded-lg">
-                          <Target className="w-5 h-5" />
-                        </div>
-                        Study Abroad Goals
-                        <div className="ml-auto text-xs bg-pink-500/30 px-2 py-1 rounded-full border border-pink-500">
-                          🎯 MISSION 3
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 md:p-6 space-y-4">
-                      <p className="text-xs text-gray-400 text-center mb-2">
-                        📚 Set your financial goals for success abroad
-                      </p>
-                      {goals.map((goal, index) => (
-                        <div key={index}>
-                          <Label className="text-orange-400 font-bold uppercase text-xs mb-2 flex items-center gap-2">
-                            <Star className="w-3 h-3" />
-                            Goal {index + 1}
-                          </Label>
-                          <Input
-                            placeholder={`e.g., ${['Save €100 for emergency fund', 'Cut food costs by 20%', 'Find part-time campus job'][index]}`}
-                            value={goal}
-                            onChange={(e) => {
-                              const newGoals = [...goals];
-                              newGoals[index] = e.target.value;
-                              setGoals(newGoals);
-                            }}
-                            className="bg-black/50 border-2 border-orange-500/50 text-orange-300 font-bold rounded-xl h-12"
-                            disabled={goalsSet}
-                          />
-                        </div>
-                      ))}
-                      
-                      {!goalsSet ? (
-                        <Button 
-                          onClick={handleSetGoals}
-                          className="w-full h-12 text-base font-black uppercase"
-                          style={{
-                            background: 'linear-gradient(45deg, #ec4899, #f97316)'
+                <Card className="bg-white shadow-lg border-0">
+                  <CardHeader className="bg-gradient-to-r from-pink-50 to-orange-50 border-b">
+                    <CardTitle className="flex items-center gap-2 text-lg text-gray-800">
+                      <Target className="w-5 h-5 text-pink-600" />
+                      Monthly Goals
+                      <span className="ml-auto text-xs bg-pink-100 px-2 py-1 rounded-full text-pink-700">
+                        Mission 3
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-3">
+                    <p className="text-xs text-gray-600 text-center">
+                      📚 Set your financial goals
+                    </p>
+                    {goals.map((goal, index) => (
+                      <div key={index}>
+                        <Label className="text-gray-700 font-semibold text-xs mb-1 flex items-center gap-1">
+                          <Star className="w-3 h-3 text-orange-500" />
+                          Goal {index + 1}
+                        </Label>
+                        <Input
+                          placeholder={`e.g., ${['Save €100', 'Cut food costs 20%', 'Find part-time job'][index]}`}
+                          value={goal}
+                          onChange={(e) => {
+                            const newGoals = [...goals];
+                            newGoals[index] = e.target.value;
+                            setGoals(newGoals);
                           }}
-                        >
-                          <Target className="w-4 h-4 mr-2" />
-                          Lock In Goals
-                        </Button>
-                      ) : (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="bg-pink-500/10 border-2 border-pink-500 rounded-xl p-4 text-center"
-                        >
-                          <p className="text-4xl mb-2">🎯</p>
-                          <p className="text-pink-400 font-bold uppercase text-sm mb-2">Goals Activated!</p>
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold mb-2">
-                            <Award className="w-3 h-3" />
-                            MISSION 3 COMPLETE!
-                          </span>
-                          <p className="text-green-300 text-xs mt-2">📈 You're a financial planning master!</p>
-                        </motion.div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
+                          className="border-2 border-gray-200 h-10 text-sm"
+                          disabled={goalsSet}
+                        />
+                      </div>
+                    ))}
+                    
+                    {!goalsSet ? (
+                      <Button 
+                        onClick={handleSetGoals}
+                        className="w-full h-10 text-sm font-bold bg-gradient-to-r from-pink-600 to-orange-600 hover:from-pink-700 hover:to-orange-700"
+                      >
+                        <Target className="w-4 h-4 mr-2" />
+                        Lock In Goals
+                      </Button>
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="border-2 border-pink-300 bg-pink-50 rounded-xl p-3 text-center"
+                      >
+                        <p className="text-2xl mb-1">🎯</p>
+                        <p className="text-pink-700 font-bold text-sm mb-1">Goals Activated!</p>
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 text-xs font-bold">
+                          <Award className="w-3 h-3" />
+                          MISSION 3 COMPLETE!
+                        </span>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
               </motion.div>
 
-              {/* Wallet & NFT Minting */}
+              {/* Wallet */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 to-green-500 rounded-2xl blur opacity-75 animate-pulse"></div>
-                  <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-yellow-500 overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-yellow-500/20 to-green-500/20 border-b-2 border-yellow-500">
-                      <CardTitle className="flex items-center gap-3 text-yellow-400 text-lg md:text-xl font-black uppercase tracking-wider">
-                        <div className="p-2 bg-yellow-500/20 rounded-lg">
-                          <Wallet className="w-5 h-5" />
+                <Card className="bg-white shadow-lg border-0">
+                  <CardHeader className="bg-gradient-to-r from-yellow-50 to-green-50 border-b">
+                    <CardTitle className="flex items-center gap-2 text-lg text-gray-800">
+                      <Wallet className="w-5 h-5 text-yellow-600" />
+                      NFT Passport
+                      <span className="ml-auto text-xs bg-yellow-100 px-2 py-1 rounded-full text-yellow-700">
+                        XRP
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    {!walletAddress ? (
+                      <div className="text-center space-y-3">
+                        <div className="w-16 h-16 mx-auto bg-gradient-to-br from-yellow-200 to-green-200 rounded-full flex items-center justify-center">
+                          <BadgeCheck className="w-8 h-8 text-yellow-700" />
                         </div>
-                        NFT Passport
-                        <div className="ml-auto text-xs bg-yellow-500/30 px-2 py-1 rounded-full border border-yellow-500">
-                          💎 XRP
+                        
+                        <div>
+                          <p className="font-bold text-sm text-gray-800 mb-1">🌟 Digital Passport</p>
+                          <p className="text-xs text-gray-600">Generate wallet to collect NFTs</p>
                         </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 md:p-6">
-                      {!walletAddress ? (
-                        <div className="text-center space-y-4">
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                            className="w-20 h-20 mx-auto bg-gradient-to-br from-yellow-500 to-green-500 rounded-full flex items-center justify-center border-4 border-dashed border-yellow-300"
-                          >
-                            <BadgeCheck className="w-10 h-10 text-white" />
-                          </motion.div>
-                          
-                          <div>
-                            <p className="text-yellow-400 font-bold text-base mb-2">🌟 DIGITAL PASSPORT</p>
-                            <p className="text-gray-400 text-sm">Generate your crypto wallet to collect achievement NFTs</p>
-                            <p className="text-xs text-gray-500 mt-2">✅ Complete missions above first</p>
-                          </div>
 
-                          <Button
-                            onClick={generateWallet}
-                            disabled={isConnecting || !xrplLoaded}
-                            className="w-full h-12 text-base font-black uppercase"
-                            style={{
-                              background: 'linear-gradient(45deg, #eab308, #22c55e)'
-                            }}
-                          >
-                            {isConnecting ? (
-                              <>
-                                <motion.div
-                                  animate={{ rotate: 360 }}
-                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                  className="inline-block mr-2"
-                                >
-                                  <Zap className="w-5 h-5" />
-                                </motion.div>
-                                Creating Wallet...
-                              </>
-                            ) : (
-                              <>
-                                <BadgeCheck className="w-5 h-5 mr-2" />
-                                Create Digital Passport
-                                <Sparkles className="w-5 h-5 ml-2" />
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <div className="bg-black/90 border-2 border-green-400 rounded-xl p-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-green-400 font-bold text-xs uppercase flex items-center gap-1">
-                                <BadgeCheck className="w-3 h-3" />
-                                Passport Active
-                              </span>
-                              <span className="text-green-400 text-xs font-bold flex items-center gap-1">
-                                ● VERIFIED
-                              </span>
-                            </div>
-                            <div className="bg-black/50 p-3 rounded-lg border border-green-500/30 mb-3">
-                              <p className="text-xs text-gray-400 mb-1">Wallet Address</p>
-                              <p className="text-green-300 font-mono text-xs break-all">{walletAddress}</p>
-                            </div>
-                            <div className="bg-black/50 p-3 rounded-lg border border-yellow-500/30">
-                              <p className="text-xs text-gray-400 mb-1">🔑 Secret Key (Save Safely!)</p>
-                              <p className="text-yellow-300 font-mono text-xs break-all">{walletSeed}</p>
-                            </div>
+                        <Button
+                          onClick={generateWallet}
+                          disabled={isConnecting || !xrplLoaded}
+                          className="w-full h-10 text-sm font-bold bg-gradient-to-r from-yellow-600 to-green-600 hover:from-yellow-700 hover:to-green-700"
+                        >
+                          {isConnecting ? (
+                            <>
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                className="inline-block mr-2"
+                              >
+                                <Zap className="w-4 h-4" />
+                              </motion.div>
+                              Creating...
+                            </>
+                          ) : (
+                            <>
+                              <BadgeCheck className="w-4 h-4 mr-2" />
+                              Create Passport
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="border-2 border-green-300 bg-green-50 rounded-xl p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-green-700 flex items-center gap-1">
+                              <BadgeCheck className="w-3 h-3" />
+                              Active
+                            </span>
+                            <span className="text-xs font-bold text-green-700">● VERIFIED</span>
                           </div>
+                          <div className="bg-white p-2 rounded border border-green-200 mb-2">
+                            <p className="text-xs text-gray-600 mb-1">Address</p>
+                            <p className="text-green-700 font-mono text-xs break-all">{walletAddress}</p>
+                          </div>
+                          <div className="bg-white p-2 rounded border border-yellow-200">
+                            <p className="text-xs text-gray-600 mb-1">🔑 Secret Key</p>
+                            <p className="text-yellow-700 font-mono text-xs break-all">{walletSeed}</p>
+                          </div>
+                        </div>
 
-                          {/* NFT Badge Collection */}
-                          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500 rounded-xl p-4">
-                            <h3 className="text-purple-400 font-black uppercase text-sm mb-3 flex items-center gap-2">
-                              <Award className="w-4 h-4" />
-                              Study Abroad Badge Collection
-                            </h3>
-                            <div className="grid grid-cols-3 gap-3">
-                              {missions.map((mission) => (
-                                <div
-                                  key={mission.id}
-                                  className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center p-3 ${
-                                    mintedNFTs[mission.nftType]
-                                      ? `border-${mission.color}-400 bg-${mission.color}-500/20`
-                                      : 'border-gray-700 bg-gray-900/50'
-                                  }`}
-                                >
-                                  {mintedNFTs[mission.nftType] ? (
-                                    <>
-                                      <motion.div
-                                        animate={{ rotate: [0, 10, -10, 0] }}
-                                        transition={{ duration: 2, repeat: Infinity }}
-                                      >
-                                        <Award className={`w-8 h-8 text-${mission.color}-400 mb-1`} />
-                                      </motion.div>
-                                      <span className={`text-${mission.color}-400 text-xs font-bold text-center leading-tight`}>
-                                        {mission.title}
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Lock className="w-8 h-8 text-gray-600 mb-1" />
-                                      <span className="text-gray-600 text-xs font-bold text-center leading-tight">
-                                        Locked
-                                      </span>
-                                    </>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                            <div className="mt-4 text-center">
-                              <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 border border-purple-500 rounded-full">
-                                <Trophy className="w-4 h-4 text-purple-400" />
-                                <span className="text-purple-400 text-sm font-bold">
-                                  {Object.values(mintedNFTs).filter(Boolean).length}/3 Badges Collected
-                                </span>
+                        <div className="border-2 border-purple-300 bg-purple-50 rounded-xl p-3">
+                          <h3 className="text-xs font-bold text-purple-700 mb-2 flex items-center gap-1">
+                            <Award className="w-3 h-3" />
+                            Badge Collection
+                          </h3>
+                          <div className="grid grid-cols-3 gap-2">
+                            {missions.map((mission) => (
+                              <div
+                                key={mission.id}
+                                className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center p-2 ${
+                                  mintedNFTs[mission.nftType]
+                                    ? 'border-green-300 bg-green-100'
+                                    : 'border-gray-300 bg-gray-100'
+                                }`}
+                              >
+                                {mintedNFTs[mission.nftType] ? (
+                                  <>
+                                    <Award className="w-6 h-6 text-green-600 mb-1" />
+                                    <span className="text-green-700 text-xs font-bold text-center leading-tight">
+                                      {mission.title}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Lock className="w-6 h-6 text-gray-400 mb-1" />
+                                    <span className="text-gray-500 text-xs font-bold text-center leading-tight">
+                                      Locked
+                                    </span>
+                                  </>
+                                )}
                               </div>
-                              {Object.values(mintedNFTs).filter(Boolean).length === 3 && (
-                                <motion.p
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  className="text-yellow-400 text-sm font-bold mt-3"
-                                >
-                                  🎉 FULL SET! You're a Study Abroad Master!
-                                </motion.p>
-                              )}
-                            </div>
+                            ))}
+                          </div>
+                          <div className="text-center mt-3">
+                            <span className="text-xs font-bold text-purple-700">
+                              {Object.values(mintedNFTs).filter(Boolean).length}/3 Collected
+                            </span>
                           </div>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Community Feed */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card className="bg-white shadow-lg border-0">
+                  <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b">
+                    <CardTitle className="flex items-center gap-2 text-lg text-gray-800">
+                      <MessageCircle className="w-5 h-5 text-blue-600" />
+                      Community Tips
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-3">
+                    <p className="text-xs text-gray-600 text-center mb-2">
+                      💡 Money-saving tips from students worldwide
+                    </p>
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {COMMUNITY_POSTS.map((post, index) => (
+                        <motion.div
+                          key={post.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="border-2 border-gray-200 bg-gray-50 rounded-xl p-3 hover:border-blue-300 hover:bg-blue-50 transition-all"
+                        >
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className="text-2xl">{post.avatar}</div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="font-bold text-sm text-gray-800">{post.author}</p>
+                                <span className="text-xs text-gray-500">{post.time}</span>
+                              </div>
+                              <p className="text-xs text-gray-600 mb-1">
+                                <MapPin className="w-3 h-3 inline mr-1 text-blue-600" />
+                                {post.city}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-2">{post.tip}</p>
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <button className="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                              <ThumbsUp className="w-3 h-3" />
+                              {post.likes}
+                            </button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             </div>
           </div>
 
-          {/* Footer with Study Abroad Tips */}
+          {/* Footer */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
-            className="mt-8 space-y-4"
+            className="mt-8 text-center"
           >
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full mb-2">
-                <span className="text-cyan-400 text-xs font-bold">🎮 XRP LEDGER TESTNET • NO REAL VALUE • EDUCATIONAL USE ONLY</span>
-              </div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md mb-4">
+              <span className="text-gray-600 text-xs font-semibold">🎮 XRP TESTNET • EDUCATIONAL USE ONLY</span>
             </div>
             
-            <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl p-4">
-              <p className="text-center text-sm font-bold text-purple-400 mb-2">💡 Study Abroad Financial Tips</p>
-              <div className="grid md:grid-cols-3 gap-3 text-xs text-gray-400">
+            <div className="bg-white rounded-xl p-4 shadow-lg">
+              <p className="text-sm font-bold text-gray-800 mb-3">💡 Study Abroad Financial Tips</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-600">
                 <div className="text-center">
-                  <p className="text-cyan-400 font-bold">🏦 Open Local Bank Account</p>
+                  <p className="font-bold text-blue-600">🏦 Open Local Account</p>
                   <p>Save on international fees</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-purple-400 font-bold">📱 Use Budgeting Apps</p>
-                  <p>Track spending in real-time</p>
+                  <p className="font-bold text-purple-600">📱 Use Budget Apps</p>
+                  <p>Track spending real-time</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-pink-400 font-bold">🍜 Cook at Home</p>
+                  <p className="font-bold text-pink-600">🍜 Cook at Home</p>
                   <p>Save 50%+ on food costs</p>
                 </div>
               </div>
