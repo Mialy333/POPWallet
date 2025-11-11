@@ -278,7 +278,7 @@ export default function Home() {
       return {
         type: 'excellent',
         icon: Trophy,
-        color: 'green',
+        color: 'cyan',
         message: `Amazing! You're €${difference.toFixed(0)} above ${cityData.name}'s average. You're living comfortably! 🌟`,
         advice: 'Consider investing your extra savings or setting up an emergency fund.'
       };
@@ -286,7 +286,7 @@ export default function Home() {
       return {
         type: 'good',
         icon: CheckCircle2,
-        color: 'blue',
+        color: 'green',
         message: `Good job! You're €${difference.toFixed(0)} above ${cityData.name}'s average cost.`,
         advice: 'You\'re on track! Keep monitoring your expenses to maintain this buffer.'
       };
@@ -342,7 +342,45 @@ export default function Home() {
   const budgetCoach = getBudgetCoachAdvice();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen relative overflow-hidden bg-black">
+      {/* Animated Grid Background */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px',
+          animation: 'grid-move 20s linear infinite'
+        }}></div>
+      </div>
+
+      {/* Floating Icons */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {['✈️', '🌍', '🎓', '🗺️', '🧳', '📚', '🏛️', '🎒'].map((icon, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-3xl opacity-20"
+            initial={{ 
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000), 
+              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
+            }}
+            animate={{
+              x: [null, Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000)],
+              y: [null, Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000)],
+              rotate: [0, 360]
+            }}
+            transition={{
+              duration: Math.random() * 20 + 20,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          >
+            {icon}
+          </motion.div>
+        ))}
+      </div>
+
       {/* Confetti Effect */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
@@ -368,40 +406,111 @@ export default function Home() {
         </div>
       )}
 
-      <div className="relative z-10 p-4 md:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-6 md:mb-8"
-          >
-            <div className="inline-flex items-center justify-center mb-4 bg-white rounded-2xl p-4 shadow-lg">
-              <div className="flex flex-col items-center gap-2">
-                <GraduationCap className="w-12 h-12 text-blue-600" />
-                <Globe className="w-12 h-12 text-purple-600" />
-              </div>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              CampusFi
-            </h1>
-            
-            <p className="text-gray-600 text-sm md:text-base font-medium">
-              Your Study Abroad Financial Companion
-            </p>
+      <style jsx>{`
+        @keyframes grid-move {
+          0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+          100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+        @keyframes neon-glow {
+          0%, 100% { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff; }
+          50% { text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff, 0 0 50px #ff00ff; }
+        }
+        @keyframes pulse-border {
+          0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.1); }
+          50% { box-shadow: 0 0 30px rgba(255, 0, 255, 0.5), inset 0 0 30px rgba(255, 0, 255, 0.1); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+      `}</style>
 
-            <div className="flex flex-wrap justify-center gap-2 mt-4">
-              <div className="px-3 py-1 bg-blue-100 rounded-full">
-                <span className="text-blue-700 text-xs font-bold">🌍 8 Countries</span>
+      <div className="relative z-10 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Retro Header with Travel Theme */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center mb-8"
+          >
+            {/* Travel Badge */}
+            <motion.div 
+              className="inline-block mb-4"
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-cyan-500 blur-xl opacity-50"></div>
+                <div className="relative bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 p-1 rounded-2xl">
+                  <div className="bg-black p-4 rounded-xl border-2 border-dashed border-cyan-400/50">
+                    <div className="flex flex-col items-center gap-2">
+                      <GraduationCap className="w-10 h-10 text-cyan-400" />
+                      <Globe className="w-10 h-10 text-pink-400" />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="px-3 py-1 bg-purple-100 rounded-full">
-                <span className="text-purple-700 text-xs font-bold">✈️ Study Abroad</span>
+            </motion.div>
+            
+            <motion.h1 
+              className="text-4xl md:text-6xl font-black mb-2 tracking-wider"
+              style={{
+                fontFamily: 'Arial Black, sans-serif',
+                background: 'linear-gradient(45deg, #00ffff, #ff00ff, #ffff00)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                animation: 'neon-glow 2s ease-in-out infinite'
+              }}
+            >
+              CAMPUS<span className="text-pink-500">Fi</span>
+            </motion.h1>
+            
+            <div className="flex items-center justify-center gap-2 text-cyan-400 text-xs md:text-sm font-bold tracking-widest mb-3">
+              <Briefcase className="w-4 h-4" />
+              <span className="uppercase">Your Study Abroad Financial Companion</span>
+              <Briefcase className="w-4 h-4" />
+            </div>
+
+            {/* Country Flags Animation */}
+            <div className="flex flex-wrap justify-center gap-2 mb-4">
+              {Object.values(CURRENCY_RATES).map((curr, i) => (
+                <motion.div
+                  key={curr.country}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="text-2xl"
+                  style={{ animation: `float ${2 + i * 0.3}s ease-in-out infinite` }}
+                >
+                  {curr.flag}
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-2">
+              <div className="px-3 py-1 bg-cyan-500/20 border border-cyan-500 rounded-full">
+                <span className="text-cyan-400 text-xs font-bold">🌍 8 COUNTRIES</span>
               </div>
-              <div className="px-3 py-1 bg-pink-100 rounded-full">
-                <span className="text-pink-700 text-xs font-bold">💎 XRP NFTs</span>
+              <div className="px-3 py-1 bg-purple-500/20 border border-purple-500 rounded-full">
+                <span className="text-purple-400 text-xs font-bold">✈️ STUDY ABROAD</span>
+              </div>
+              <div className="px-3 py-1 bg-pink-500/20 border border-pink-500 rounded-full">
+                <span className="text-pink-400 text-xs font-bold">🎓 STUDENT LIFE</span>
+              </div>
+              <div className="px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full">
+                <span className="text-yellow-400 text-xs font-bold">💎 XRP NFT</span>
               </div>
             </div>
+
+            {/* Motivational Quote */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-4 text-gray-400 text-sm italic"
+            >
+              "Master your money, conquer the world 🌍"
+            </motion.div>
           </motion.div>
 
           {/* Error Alert */}
@@ -413,8 +522,8 @@ export default function Home() {
                 exit={{ opacity: 0, y: -20 }}
                 className="mb-6"
               >
-                <Alert className="bg-red-50 border-red-200">
-                  <AlertDescription className="text-red-800">
+                <Alert className="bg-red-900/50 border-2 border-red-500" style={{ animation: 'pulse-border 2s ease-in-out infinite' }}>
+                  <AlertDescription className="text-red-200 font-bold">
                     ⚠️ {error}
                   </AlertDescription>
                 </Alert>
@@ -428,17 +537,17 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <Card className="bg-white shadow-lg border-0">
-              <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50 border-b">
-                <CardTitle className="flex items-center gap-2 text-lg md:text-xl text-gray-800">
-                  <Map className="w-5 h-5 text-orange-600" />
-                  Your Study Abroad Journey
-                  <span className="ml-auto text-sm bg-orange-100 px-3 py-1 rounded-full text-orange-700">
-                    {missions.filter(m => m.completed).length}/3 Complete
+            <Card className="bg-black/40 backdrop-blur-sm border-2 border-cyan-500/50" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
+              <CardHeader className="border-b-2 border-cyan-500/30">
+                <CardTitle className="flex items-center gap-2 text-xl text-cyan-400 font-black tracking-wide">
+                  <Map className="w-6 h-6" />
+                  YOUR STUDY ABROAD JOURNEY
+                  <span className="ml-auto text-sm bg-cyan-500/20 border border-cyan-500 px-3 py-1 rounded-full">
+                    {missions.filter(m => m.completed).length}/3 ⚡
                   </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 md:p-6">
+              <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {missions.map((mission, index) => (
                     <motion.div
@@ -446,52 +555,53 @@ export default function Home() {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.1 }}
-                      className={`border-2 rounded-xl p-4 ${
+                      className={`border-2 rounded-xl p-4 backdrop-blur-sm ${
                         mission.completed 
-                          ? 'border-green-300 bg-green-50' 
-                          : 'border-gray-200 bg-gray-50'
+                          ? 'border-cyan-400 bg-cyan-900/30' 
+                          : 'border-gray-700 bg-gray-900/30'
                       }`}
+                      style={mission.completed ? { animation: 'pulse-border 2s ease-in-out infinite' } : {}}
                     >
-                      <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-start justify-between mb-3">
                         <div className={`p-2 rounded-lg ${
-                          mission.completed ? 'bg-green-100' : 'bg-gray-200'
+                          mission.completed ? 'bg-cyan-500/20' : 'bg-gray-800'
                         }`}>
-                          <mission.icon className={`w-5 h-5 ${
-                            mission.completed ? 'text-green-600' : 'text-gray-400'
+                          <mission.icon className={`w-6 h-6 ${
+                            mission.completed ? 'text-cyan-400' : 'text-gray-600'
                           }`} />
                         </div>
                         {mission.completed ? (
-                          <div className="flex items-center gap-1 px-2 py-1 bg-green-200 rounded-full">
-                            <CheckCircle2 className="w-3 h-3 text-green-700" />
-                            <span className="text-green-700 text-xs font-bold">DONE</span>
+                          <div className="flex items-center gap-1 px-2 py-1 bg-cyan-500/20 border border-cyan-500 rounded-full">
+                            <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+                            <span className="text-cyan-400 text-xs font-bold">DONE</span>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1 px-2 py-1 bg-gray-200 rounded-full">
-                            <Lock className="w-3 h-3 text-gray-500" />
+                          <div className="flex items-center gap-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded-full">
+                            <Lock className="w-4 h-4 text-gray-500" />
                             <span className="text-gray-500 text-xs font-bold">LOCKED</span>
                           </div>
                         )}
                       </div>
-                      <h3 className={`font-bold text-sm ${
-                        mission.completed ? 'text-green-700' : 'text-gray-500'
+                      <h3 className={`font-black text-base mb-1 ${
+                        mission.completed ? 'text-cyan-400' : 'text-gray-500'
                       }`}>
                         🎯 {mission.title}
                       </h3>
-                      <p className="text-gray-600 text-xs mt-1">{mission.description}</p>
+                      <p className="text-gray-400 text-sm">{mission.description}</p>
                       {mission.completed && !mintedNFTs[mission.nftType] && walletAddress && (
                         <Button
                           onClick={() => mintNFT(mission.nftType)}
                           disabled={currentlyMinting === mission.nftType}
-                          className="w-full mt-3 h-8 text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                          className="w-full mt-3 h-9 text-sm font-bold bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 border-2 border-cyan-400"
                         >
-                          {currentlyMinting === mission.nftType ? '⚡ Minting...' : '💎 Claim NFT Badge'}
+                          {currentlyMinting === mission.nftType ? '⚡ MINTING...' : '💎 CLAIM NFT BADGE'}
                         </Button>
                       )}
                       {mintedNFTs[mission.nftType] && (
                         <div className="mt-3 text-center">
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 text-xs font-bold">
-                            <Award className="w-3 h-3" />
-                            NFT EARNED
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border-2 border-yellow-500 rounded-full text-yellow-400 text-xs font-bold">
+                            <Award className="w-4 h-4" />
+                            NFT EARNED ⚡
                           </span>
                         </div>
                       )}
@@ -510,110 +620,111 @@ export default function Home() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
               >
-                <Card className="bg-white shadow-lg border-0">
-                  <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 border-b">
-                    <CardTitle className="flex items-center gap-2 text-lg md:text-xl text-gray-800">
-                      <Coins className="w-5 h-5 text-blue-600" />
-                      Student Budget Calculator
-                      <span className="ml-auto text-xs bg-cyan-100 px-3 py-1 rounded-full text-cyan-700">
-                        Mission 1
+                <Card className="bg-black/40 backdrop-blur-sm border-2 border-cyan-500/50" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
+                  <CardHeader className="border-b-2 border-cyan-500/30">
+                    <CardTitle className="flex items-center gap-2 text-xl text-cyan-400 font-black tracking-wide">
+                      <Coins className="w-6 h-6" />
+                      STUDENT BUDGET CALCULATOR
+                      <span className="ml-auto text-xs bg-cyan-500/20 border border-cyan-500 px-3 py-1 rounded-full">
+                        MISSION 1
                       </span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4 md:p-6 space-y-4">
+                  <CardContent className="p-6 space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-gray-700 font-semibold text-sm mb-2 flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-green-600" />
-                          Monthly Income (€)
+                        <Label className="text-cyan-400 font-bold text-sm mb-2 flex items-center gap-2 tracking-wide">
+                          <TrendingUp className="w-4 h-4" />
+                          INCOME (€)
                         </Label>
                         <Input
                           type="number"
                           placeholder="e.g., 1000"
                           value={income}
                           onChange={(e) => setIncome(e.target.value)}
-                          className="border-2 border-gray-200 focus:border-blue-400 h-12 text-lg"
+                          className="border-2 border-cyan-500/50 bg-black/50 text-cyan-100 placeholder-gray-600 focus:border-cyan-400 h-12 text-lg font-bold"
                         />
                       </div>
 
                       <div>
-                        <Label className="text-gray-700 font-semibold text-sm mb-2 flex items-center gap-2">
-                          <TrendingDown className="w-4 h-4 text-red-600" />
-                          Monthly Expenses (€)
+                        <Label className="text-pink-400 font-bold text-sm mb-2 flex items-center gap-2 tracking-wide">
+                          <TrendingDown className="w-4 h-4" />
+                          EXPENSES (€)
                         </Label>
                         <Input
                           type="number"
                           placeholder="e.g., 800"
                           value={expenses}
                           onChange={(e) => setExpenses(e.target.value)}
-                          className="border-2 border-gray-200 focus:border-blue-400 h-12 text-lg"
+                          className="border-2 border-pink-500/50 bg-black/50 text-pink-100 placeholder-gray-600 focus:border-pink-400 h-12 text-lg font-bold"
                         />
                       </div>
                     </div>
 
                     {income && expenses && (
                       <div className="space-y-2">
-                        <div className="flex justify-between text-sm font-semibold text-gray-700">
-                          <span>Budget Usage</span>
+                        <div className="flex justify-between text-sm font-bold text-cyan-400">
+                          <span>BUDGET USAGE</span>
                           <span className={`${
-                            getSpendingPercentage() < 50 ? 'text-green-600' :
-                            getSpendingPercentage() < 75 ? 'text-yellow-600' :
-                            'text-red-600'
+                            getSpendingPercentage() < 50 ? 'text-green-400' :
+                            getSpendingPercentage() < 75 ? 'text-yellow-400' :
+                            'text-red-400'
                           }`}>
                             {getSpendingPercentage().toFixed(0)}%
                           </span>
                         </div>
-                        <div className="relative h-6 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="relative h-8 bg-gray-900 rounded-full overflow-hidden border-2 border-cyan-500/30">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${getSpendingPercentage()}%` }}
                             className={`h-full bg-gradient-to-r ${getProgressColor(getSpendingPercentage())}`}
                           />
                         </div>
-                        <p className="text-xs text-gray-600 text-center">
-                          {getSpendingPercentage() < 50 ? '✅ Great! Living below your means' :
-                           getSpendingPercentage() < 75 ? '⚠️ Watch your spending carefully' :
-                           '🚨 Budget alert! Time to cut expenses'}
+                        <p className="text-xs text-gray-400 text-center font-bold">
+                          {getSpendingPercentage() < 50 ? '✅ EXCELLENT! Living below your means' :
+                           getSpendingPercentage() < 75 ? '⚠️ CAREFUL! Watch your spending' :
+                           '🚨 ALERT! Budget limit reached'}
                         </p>
                       </div>
                     )}
 
                     <Button 
                       onClick={calculateBalance}
-                      className="w-full h-12 text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                      className="w-full h-14 text-lg font-black bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 border-2 border-cyan-400 tracking-wider"
                     >
-                      <Trophy className="w-5 h-5 mr-2" />
-                      Calculate Savings
+                      <Trophy className="w-6 h-6 mr-2" />
+                      CALCULATE SAVINGS ⚡
                     </Button>
 
                     {balance !== null && (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className={`border-2 rounded-xl p-4 ${
-                          balance > 0 ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'
+                        className={`border-2 rounded-xl p-5 backdrop-blur-sm ${
+                          balance > 0 ? 'border-cyan-400 bg-cyan-900/30' : 'border-red-400 bg-red-900/30'
                         }`}
+                        style={balance > 0 ? { animation: 'pulse-border 2s ease-in-out infinite' } : {}}
                       >
-                        <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                          <Sparkles className="w-4 h-4" />
-                          Monthly Savings
+                        <p className="text-sm font-bold text-gray-300 mb-3 flex items-center gap-2 tracking-wide">
+                          <Sparkles className="w-5 h-5 text-yellow-400" />
+                          MONTHLY SAVINGS
                         </p>
-                        <div className={`text-4xl font-black text-center ${
-                          balance > 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
+                        <div className={`text-5xl font-black text-center mb-3 ${
+                          balance > 0 ? 'text-cyan-400' : 'text-red-400'
+                        }`} style={{ textShadow: balance > 0 ? '0 0 20px rgba(0, 255, 255, 0.8)' : '0 0 20px rgba(255, 0, 0, 0.8)' }}>
                           €{Math.abs(balance).toFixed(2)}
                         </div>
                         {balance > 50 && (
-                          <div className="text-center mt-3">
-                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 text-xs font-bold">
-                              <Trophy className="w-3 h-3" />
-                              MISSION 1 COMPLETE!
+                          <div className="text-center">
+                            <span className="inline-flex items-center gap-1 px-4 py-2 bg-yellow-500/20 border-2 border-yellow-500 rounded-full text-yellow-400 text-sm font-black mb-2">
+                              <Trophy className="w-4 h-4" />
+                              MISSION 1 COMPLETE! ⚡
                             </span>
-                            <p className="text-green-700 text-xs mt-2">🎉 Ready for study abroad!</p>
+                            <p className="text-cyan-400 text-sm font-bold">🎉 Ready for study abroad adventure!</p>
                           </div>
                         )}
                         {balance > 0 && balance <= 50 && (
-                          <p className="text-center text-yellow-700 text-xs mt-2">
+                          <p className="text-center text-yellow-400 text-sm font-bold">
                             💪 Save €{(51 - balance).toFixed(2)} more to unlock NFT!
                           </p>
                         )}
@@ -623,32 +734,32 @@ export default function Home() {
                 </Card>
               </motion.div>
 
-              {/* Dynamic Budget Coach */}
+              {/* Dynamic Budget Coach - NEW */}
               {balance !== null && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <Card className="bg-white shadow-lg border-0">
-                    <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b">
-                      <CardTitle className="flex items-center gap-2 text-lg md:text-xl text-gray-800">
-                        <Lightbulb className="w-5 h-5 text-purple-600" />
-                        Dynamic Budget Coach
+                  <Card className="bg-black/40 backdrop-blur-sm border-2 border-purple-500/50" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
+                    <CardHeader className="border-b-2 border-purple-500/30">
+                      <CardTitle className="flex items-center gap-2 text-xl text-purple-400 font-black tracking-wide">
+                        <Lightbulb className="w-6 h-6" />
+                        DYNAMIC BUDGET COACH ⚡
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-4 md:p-6 space-y-4">
+                    <CardContent className="p-6 space-y-4">
                       <div>
-                        <Label className="text-gray-700 font-semibold text-sm mb-2 flex items-center gap-2">
-                          <MapPinned className="w-4 h-4 text-purple-600" />
-                          Select Your Study City
+                        <Label className="text-purple-400 font-bold text-sm mb-2 flex items-center gap-2 tracking-wide">
+                          <MapPinned className="w-4 h-4" />
+                          SELECT YOUR STUDY CITY
                         </Label>
                         <Select value={selectedCity} onValueChange={setSelectedCity}>
-                          <SelectTrigger className="border-2 border-gray-200 h-12">
+                          <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-12 font-bold">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-black border-2 border-purple-500">
                             {Object.entries(CITY_COSTS).map(([key, data]) => (
-                              <SelectItem key={key} value={key}>
+                              <SelectItem key={key} value={key} className="text-purple-100 font-bold">
                                 {data.flag} {data.name}, {data.country} - €{data.avgCost}/mo
                               </SelectItem>
                             ))}
@@ -660,51 +771,56 @@ export default function Home() {
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`border-2 rounded-xl p-4 ${
-                            budgetCoach.type === 'excellent' ? 'border-green-300 bg-green-50' :
-                            budgetCoach.type === 'good' ? 'border-blue-300 bg-blue-50' :
-                            budgetCoach.type === 'warning' ? 'border-yellow-300 bg-yellow-50' :
-                            'border-red-300 bg-red-50'
+                          className={`border-2 rounded-xl p-5 backdrop-blur-sm ${
+                            budgetCoach.type === 'excellent' ? 'border-cyan-400 bg-cyan-900/30' :
+                            budgetCoach.type === 'good' ? 'border-green-400 bg-green-900/30' :
+                            budgetCoach.type === 'warning' ? 'border-yellow-400 bg-yellow-900/30' :
+                            'border-red-400 bg-red-900/30'
                           }`}
+                          style={{ animation: 'pulse-border 2s ease-in-out infinite' }}
                         >
                           <div className="flex items-start gap-3">
-                            <div className={`p-2 rounded-lg ${
-                              budgetCoach.type === 'excellent' ? 'bg-green-200' :
-                              budgetCoach.type === 'good' ? 'bg-blue-200' :
-                              budgetCoach.type === 'warning' ? 'bg-yellow-200' :
-                              'bg-red-200'
+                            <div className={`p-3 rounded-lg ${
+                              budgetCoach.type === 'excellent' ? 'bg-cyan-500/20' :
+                              budgetCoach.type === 'good' ? 'bg-green-500/20' :
+                              budgetCoach.type === 'warning' ? 'bg-yellow-500/20' :
+                              'bg-red-500/20'
                             }`}>
-                              <budgetCoach.icon className={`w-5 h-5 ${
-                                budgetCoach.type === 'excellent' ? 'text-green-700' :
-                                budgetCoach.type === 'good' ? 'text-blue-700' :
-                                budgetCoach.type === 'warning' ? 'text-yellow-700' :
-                                'text-red-700'
+                              <budgetCoach.icon className={`w-6 h-6 ${
+                                budgetCoach.type === 'excellent' ? 'text-cyan-400' :
+                                budgetCoach.type === 'good' ? 'text-green-400' :
+                                budgetCoach.type === 'warning' ? 'text-yellow-400' :
+                                'text-red-400'
                               }`} />
                             </div>
                             <div className="flex-1">
-                              <p className={`font-bold text-sm mb-1 ${
-                                budgetCoach.type === 'excellent' ? 'text-green-800' :
-                                budgetCoach.type === 'good' ? 'text-blue-800' :
-                                budgetCoach.type === 'warning' ? 'text-yellow-800' :
-                                'text-red-800'
+                              <p className={`font-black text-sm mb-2 tracking-wide ${
+                                budgetCoach.type === 'excellent' ? 'text-cyan-400' :
+                                budgetCoach.type === 'good' ? 'text-green-400' :
+                                budgetCoach.type === 'warning' ? 'text-yellow-400' :
+                                'text-red-400'
                               }`}>
                                 {budgetCoach.message}
                               </p>
-                              <p className="text-xs text-gray-700 mt-2">
-                                <strong>Coach Advice:</strong> {budgetCoach.advice}
+                              <p className="text-xs text-gray-300 font-bold">
+                                <strong className="text-purple-400">COACH ADVICE:</strong> {budgetCoach.advice}
                               </p>
                             </div>
                           </div>
 
-                          <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="mt-4 pt-4 border-t-2 border-gray-700">
                             <div className="grid grid-cols-2 gap-4 text-center">
-                              <div>
-                                <p className="text-xs text-gray-600 mb-1">Your Balance</p>
-                                <p className="text-xl font-bold text-gray-800">€{balance.toFixed(0)}</p>
+                              <div className="border-2 border-cyan-500/50 rounded-lg p-3 bg-cyan-900/20">
+                                <p className="text-xs text-cyan-400 mb-1 font-bold tracking-wide">YOUR BALANCE</p>
+                                <p className="text-2xl font-black text-cyan-400" style={{ textShadow: '0 0 15px rgba(0, 255, 255, 0.8)' }}>
+                                  €{balance.toFixed(0)}
+                                </p>
                               </div>
-                              <div>
-                                <p className="text-xs text-gray-600 mb-1">City Average</p>
-                                <p className="text-xl font-bold text-gray-800">€{CITY_COSTS[selectedCity].avgCost}</p>
+                              <div className="border-2 border-purple-500/50 rounded-lg p-3 bg-purple-900/20">
+                                <p className="text-xs text-purple-400 mb-1 font-bold tracking-wide">CITY AVERAGE</p>
+                                <p className="text-2xl font-black text-purple-400" style={{ textShadow: '0 0 15px rgba(128, 0, 255, 0.8)' }}>
+                                  €{CITY_COSTS[selectedCity].avgCost}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -721,32 +837,32 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                <Card className="bg-white shadow-lg border-0">
-                  <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b">
-                    <CardTitle className="flex items-center gap-2 text-lg md:text-xl text-gray-800">
-                      <Globe className="w-5 h-5 text-purple-600" />
-                      Currency Converter
-                      <span className="ml-auto text-xs bg-purple-100 px-3 py-1 rounded-full text-purple-700">
-                        Mission 2
+                <Card className="bg-black/40 backdrop-blur-sm border-2 border-purple-500/50" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
+                  <CardHeader className="border-b-2 border-purple-500/30">
+                    <CardTitle className="flex items-center gap-2 text-xl text-purple-400 font-black tracking-wide">
+                      <Globe className="w-6 h-6" />
+                      CURRENCY CONVERTER
+                      <span className="ml-auto text-xs bg-purple-500/20 border border-purple-500 px-3 py-1 rounded-full">
+                        MISSION 2
                       </span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4 md:p-6 space-y-4">
-                    <p className="text-xs text-gray-600 text-center">
-                      🌍 Convert between 8 study destinations
+                  <CardContent className="p-6 space-y-4">
+                    <p className="text-xs text-gray-400 text-center font-bold tracking-wide">
+                      🌍 CONVERT BETWEEN 8 STUDY DESTINATIONS
                     </p>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label className="text-gray-700 font-semibold text-xs mb-2 block">
-                          From {CURRENCY_RATES[fromCurrency]?.flag}
+                        <Label className="text-purple-400 font-bold text-xs mb-2 block tracking-wide">
+                          FROM {CURRENCY_RATES[fromCurrency]?.flag}
                         </Label>
                         <Select value={fromCurrency} onValueChange={setFromCurrency}>
-                          <SelectTrigger className="border-2 border-gray-200 h-12">
+                          <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-12 font-bold">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-black border-2 border-purple-500">
                             {Object.entries(CURRENCY_RATES).map(([code, data]) => (
-                              <SelectItem key={code} value={code}>
+                              <SelectItem key={code} value={code} className="text-purple-100 font-bold">
                                 {data.flag} {code}
                               </SelectItem>
                             ))}
@@ -754,16 +870,16 @@ export default function Home() {
                         </Select>
                       </div>
                       <div>
-                        <Label className="text-gray-700 font-semibold text-xs mb-2 block">
-                          To {CURRENCY_RATES[toCurrency]?.flag}
+                        <Label className="text-pink-400 font-bold text-xs mb-2 block tracking-wide">
+                          TO {CURRENCY_RATES[toCurrency]?.flag}
                         </Label>
                         <Select value={toCurrency} onValueChange={setToCurrency}>
-                          <SelectTrigger className="border-2 border-gray-200 h-12">
+                          <SelectTrigger className="border-2 border-pink-500/50 bg-black/50 text-pink-100 h-12 font-bold">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-black border-2 border-pink-500">
                             {Object.entries(CURRENCY_RATES).map(([code, data]) => (
-                              <SelectItem key={code} value={code}>
+                              <SelectItem key={code} value={code} className="text-pink-100 font-bold">
                                 {data.flag} {code}
                               </SelectItem>
                             ))}
@@ -777,40 +893,41 @@ export default function Home() {
                       placeholder="Enter amount"
                       value={convertAmount}
                       onChange={(e) => setConvertAmount(e.target.value)}
-                      className="border-2 border-gray-200 focus:border-purple-400 h-12 text-lg"
+                      className="border-2 border-purple-500/50 bg-black/50 text-purple-100 placeholder-gray-600 focus:border-purple-400 h-12 text-lg font-bold"
                     />
 
                     <Button 
                       onClick={convertCurrency}
-                      className="w-full h-12 text-base font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                      className="w-full h-14 text-lg font-black bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 border-2 border-purple-400 tracking-wider"
                     >
-                      <Plane className="w-4 h-4 mr-2" />
-                      Convert Currency
+                      <Plane className="w-5 h-5 mr-2" />
+                      CONVERT CURRENCY ⚡
                     </Button>
 
                     {convertedAmount !== null && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="border-2 border-purple-300 bg-purple-50 rounded-xl p-4 text-center"
+                        className="border-2 border-purple-400 bg-purple-900/30 rounded-xl p-5 text-center backdrop-blur-sm"
+                        style={{ animation: 'pulse-border 2s ease-in-out infinite' }}
                       >
-                        <div className="flex items-center justify-center gap-2 mb-2 text-3xl">
+                        <div className="flex items-center justify-center gap-3 mb-3 text-4xl">
                           <span>{CURRENCY_RATES[fromCurrency]?.flag}</span>
-                          <span className="text-purple-600">→</span>
+                          <span className="text-purple-400">→</span>
                           <span>{CURRENCY_RATES[toCurrency]?.flag}</span>
                         </div>
-                        <p className="text-xs font-semibold text-purple-700 mb-1">CONVERTED AMOUNT</p>
-                        <p className="text-3xl font-black text-purple-800">
+                        <p className="text-xs font-bold text-purple-400 mb-2 tracking-wider">CONVERTED AMOUNT</p>
+                        <p className="text-4xl font-black text-purple-400 mb-3" style={{ textShadow: '0 0 20px rgba(168, 85, 247, 0.8)' }}>
                           {CURRENCY_RATES[toCurrency].symbol}{convertedAmount.toFixed(2)}
                         </p>
-                        <p className="text-xs text-gray-600 mt-2">
+                        <p className="text-xs text-gray-400 font-bold">
                           {CURRENCY_RATES[fromCurrency].symbol}{convertAmount} {fromCurrency} = {CURRENCY_RATES[toCurrency].symbol}{convertedAmount.toFixed(2)} {toCurrency}
                         </p>
                         {converterUsed && (
                           <div className="mt-3">
-                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 text-xs font-bold">
-                              <Globe className="w-3 h-3" />
-                              MISSION 2 COMPLETE!
+                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border-2 border-yellow-500 rounded-full text-yellow-400 text-xs font-black">
+                              <Globe className="w-4 h-4" />
+                              MISSION 2 COMPLETE! ⚡
                             </span>
                           </div>
                         )}
@@ -829,25 +946,25 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <Card className="bg-white shadow-lg border-0">
-                  <CardHeader className="bg-gradient-to-r from-pink-50 to-orange-50 border-b">
-                    <CardTitle className="flex items-center gap-2 text-lg text-gray-800">
-                      <Target className="w-5 h-5 text-pink-600" />
-                      Monthly Goals
-                      <span className="ml-auto text-xs bg-pink-100 px-2 py-1 rounded-full text-pink-700">
-                        Mission 3
+                <Card className="bg-black/40 backdrop-blur-sm border-2 border-pink-500/50" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
+                  <CardHeader className="border-b-2 border-pink-500/30">
+                    <CardTitle className="flex items-center gap-2 text-lg text-pink-400 font-black tracking-wide">
+                      <Target className="w-5 h-5" />
+                      MONTHLY GOALS
+                      <span className="ml-auto text-xs bg-pink-500/20 border border-pink-500 px-2 py-1 rounded-full">
+                        MISSION 3
                       </span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 space-y-3">
-                    <p className="text-xs text-gray-600 text-center">
-                      📚 Set your financial goals
+                    <p className="text-xs text-gray-400 text-center font-bold tracking-wide">
+                      📚 SET YOUR FINANCIAL GOALS
                     </p>
                     {goals.map((goal, index) => (
                       <div key={index}>
-                        <Label className="text-gray-700 font-semibold text-xs mb-1 flex items-center gap-1">
-                          <Star className="w-3 h-3 text-orange-500" />
-                          Goal {index + 1}
+                        <Label className="text-pink-400 font-bold text-xs mb-1 flex items-center gap-1 tracking-wide">
+                          <Star className="w-3 h-3" />
+                          GOAL {index + 1}
                         </Label>
                         <Input
                           placeholder={`e.g., ${['Save €100', 'Cut food costs 20%', 'Find part-time job'][index]}`}
@@ -857,7 +974,7 @@ export default function Home() {
                             newGoals[index] = e.target.value;
                             setGoals(newGoals);
                           }}
-                          className="border-2 border-gray-200 h-10 text-sm"
+                          className="border-2 border-pink-500/50 bg-black/50 text-pink-100 placeholder-gray-600 h-10 text-sm font-bold"
                           disabled={goalsSet}
                         />
                       </div>
@@ -866,22 +983,23 @@ export default function Home() {
                     {!goalsSet ? (
                       <Button 
                         onClick={handleSetGoals}
-                        className="w-full h-10 text-sm font-bold bg-gradient-to-r from-pink-600 to-orange-600 hover:from-pink-700 hover:to-orange-700"
+                        className="w-full h-12 text-sm font-black bg-gradient-to-r from-pink-500 to-orange-600 hover:from-pink-600 hover:to-orange-700 border-2 border-pink-400 tracking-wider"
                       >
-                        <Target className="w-4 h-4 mr-2" />
-                        Lock In Goals
+                        <Target className="w-5 h-5 mr-2" />
+                        LOCK IN GOALS ⚡
                       </Button>
                     ) : (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="border-2 border-pink-300 bg-pink-50 rounded-xl p-3 text-center"
+                        className="border-2 border-pink-400 bg-pink-900/30 rounded-xl p-4 text-center backdrop-blur-sm"
+                        style={{ animation: 'pulse-border 2s ease-in-out infinite' }}
                       >
-                        <p className="text-2xl mb-1">🎯</p>
-                        <p className="text-pink-700 font-bold text-sm mb-1">Goals Activated!</p>
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 text-xs font-bold">
-                          <Award className="w-3 h-3" />
-                          MISSION 3 COMPLETE!
+                        <p className="text-3xl mb-2">🎯</p>
+                        <p className="text-pink-400 font-black text-sm mb-2">GOALS ACTIVATED!</p>
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border-2 border-yellow-500 rounded-full text-yellow-400 text-xs font-black">
+                          <Award className="w-4 h-4" />
+                          MISSION 3 COMPLETE! ⚡
                         </span>
                       </motion.div>
                     )}
@@ -895,32 +1013,32 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <Card className="bg-white shadow-lg border-0">
-                  <CardHeader className="bg-gradient-to-r from-yellow-50 to-green-50 border-b">
-                    <CardTitle className="flex items-center gap-2 text-lg text-gray-800">
-                      <Wallet className="w-5 h-5 text-yellow-600" />
-                      NFT Passport
-                      <span className="ml-auto text-xs bg-yellow-100 px-2 py-1 rounded-full text-yellow-700">
-                        XRP
+                <Card className="bg-black/40 backdrop-blur-sm border-2 border-yellow-500/50" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
+                  <CardHeader className="border-b-2 border-yellow-500/30">
+                    <CardTitle className="flex items-center gap-2 text-lg text-yellow-400 font-black tracking-wide">
+                      <Wallet className="w-5 h-5" />
+                      NFT PASSPORT
+                      <span className="ml-auto text-xs bg-yellow-500/20 border border-yellow-500 px-2 py-1 rounded-full">
+                        XRP ⚡
                       </span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
                     {!walletAddress ? (
                       <div className="text-center space-y-3">
-                        <div className="w-16 h-16 mx-auto bg-gradient-to-br from-yellow-200 to-green-200 rounded-full flex items-center justify-center">
-                          <BadgeCheck className="w-8 h-8 text-yellow-700" />
+                        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full flex items-center justify-center border-4 border-yellow-400" style={{ boxShadow: '0 0 30px rgba(234, 179, 8, 0.6)' }}>
+                          <BadgeCheck className="w-10 h-10 text-black" />
                         </div>
                         
                         <div>
-                          <p className="font-bold text-sm text-gray-800 mb-1">🌟 Digital Passport</p>
-                          <p className="text-xs text-gray-600">Generate wallet to collect NFTs</p>
+                          <p className="font-black text-base text-yellow-400 mb-1 tracking-wide">🌟 DIGITAL PASSPORT</p>
+                          <p className="text-xs text-gray-400 font-bold">Generate wallet to collect NFTs</p>
                         </div>
 
                         <Button
                           onClick={generateWallet}
                           disabled={isConnecting || !xrplLoaded}
-                          className="w-full h-10 text-sm font-bold bg-gradient-to-r from-yellow-600 to-green-600 hover:from-yellow-700 hover:to-green-700"
+                          className="w-full h-12 text-sm font-black bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 border-2 border-yellow-400 tracking-wider"
                         >
                           {isConnecting ? (
                             <>
@@ -929,42 +1047,42 @@ export default function Home() {
                                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                                 className="inline-block mr-2"
                               >
-                                <Zap className="w-4 h-4" />
+                                <Zap className="w-5 h-5" />
                               </motion.div>
-                              Creating...
+                              CREATING...
                             </>
                           ) : (
                             <>
-                              <BadgeCheck className="w-4 h-4 mr-2" />
-                              Create Passport
+                              <BadgeCheck className="w-5 h-5 mr-2" />
+                              CREATE PASSPORT ⚡
                             </>
                           )}
                         </Button>
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        <div className="border-2 border-green-300 bg-green-50 rounded-xl p-3">
+                        <div className="border-2 border-green-400 bg-green-900/30 rounded-xl p-3 backdrop-blur-sm" style={{ animation: 'pulse-border 2s ease-in-out infinite' }}>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold text-green-700 flex items-center gap-1">
-                              <BadgeCheck className="w-3 h-3" />
-                              Active
+                            <span className="text-xs font-black text-green-400 flex items-center gap-1 tracking-wide">
+                              <BadgeCheck className="w-4 h-4" />
+                              ACTIVE
                             </span>
-                            <span className="text-xs font-bold text-green-700">● VERIFIED</span>
+                            <span className="text-xs font-black text-green-400">● VERIFIED</span>
                           </div>
-                          <div className="bg-white p-2 rounded border border-green-200 mb-2">
-                            <p className="text-xs text-gray-600 mb-1">Address</p>
-                            <p className="text-green-700 font-mono text-xs break-all">{walletAddress}</p>
+                          <div className="bg-black/70 p-2 rounded border-2 border-green-500/50 mb-2">
+                            <p className="text-xs text-green-400 mb-1 font-bold">ADDRESS</p>
+                            <p className="text-green-300 font-mono text-xs break-all">{walletAddress}</p>
                           </div>
-                          <div className="bg-white p-2 rounded border border-yellow-200">
-                            <p className="text-xs text-gray-600 mb-1">🔑 Secret Key</p>
-                            <p className="text-yellow-700 font-mono text-xs break-all">{walletSeed}</p>
+                          <div className="bg-black/70 p-2 rounded border-2 border-yellow-500/50">
+                            <p className="text-xs text-yellow-400 mb-1 font-bold">🔑 SECRET KEY</p>
+                            <p className="text-yellow-300 font-mono text-xs break-all">{walletSeed}</p>
                           </div>
                         </div>
 
-                        <div className="border-2 border-purple-300 bg-purple-50 rounded-xl p-3">
-                          <h3 className="text-xs font-bold text-purple-700 mb-2 flex items-center gap-1">
-                            <Award className="w-3 h-3" />
-                            Badge Collection
+                        <div className="border-2 border-purple-400 bg-purple-900/30 rounded-xl p-3 backdrop-blur-sm">
+                          <h3 className="text-xs font-black text-purple-400 mb-2 flex items-center gap-1 tracking-wide">
+                            <Award className="w-4 h-4" />
+                            BADGE COLLECTION
                           </h3>
                           <div className="grid grid-cols-3 gap-2">
                             {missions.map((mission) => (
@@ -972,21 +1090,22 @@ export default function Home() {
                                 key={mission.id}
                                 className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center p-2 ${
                                   mintedNFTs[mission.nftType]
-                                    ? 'border-green-300 bg-green-100'
-                                    : 'border-gray-300 bg-gray-100'
+                                    ? 'border-cyan-400 bg-cyan-900/30'
+                                    : 'border-gray-700 bg-gray-900/30'
                                 }`}
+                                style={mintedNFTs[mission.nftType] ? { boxShadow: '0 0 15px rgba(0, 255, 255, 0.5)' } : {}}
                               >
                                 {mintedNFTs[mission.nftType] ? (
                                   <>
-                                    <Award className="w-6 h-6 text-green-600 mb-1" />
-                                    <span className="text-green-700 text-xs font-bold text-center leading-tight">
+                                    <Award className="w-6 h-6 text-cyan-400 mb-1" />
+                                    <span className="text-cyan-400 text-xs font-black text-center leading-tight">
                                       {mission.title}
                                     </span>
                                   </>
                                 ) : (
                                   <>
-                                    <Lock className="w-6 h-6 text-gray-400 mb-1" />
-                                    <span className="text-gray-500 text-xs font-bold text-center leading-tight">
+                                    <Lock className="w-6 h-6 text-gray-600 mb-1" />
+                                    <span className="text-gray-600 text-xs font-bold text-center leading-tight">
                                       Locked
                                     </span>
                                   </>
@@ -995,8 +1114,8 @@ export default function Home() {
                             ))}
                           </div>
                           <div className="text-center mt-3">
-                            <span className="text-xs font-bold text-purple-700">
-                              {Object.values(mintedNFTs).filter(Boolean).length}/3 Collected
+                            <span className="text-xs font-black text-purple-400 tracking-wide">
+                              {Object.values(mintedNFTs).filter(Boolean).length}/3 COLLECTED ⚡
                             </span>
                           </div>
                         </div>
@@ -1006,48 +1125,48 @@ export default function Home() {
                 </Card>
               </motion.div>
 
-              {/* Community Feed */}
+              {/* Community Feed - NEW */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <Card className="bg-white shadow-lg border-0">
-                  <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b">
-                    <CardTitle className="flex items-center gap-2 text-lg text-gray-800">
-                      <MessageCircle className="w-5 h-5 text-blue-600" />
-                      Community Tips
+                <Card className="bg-black/40 backdrop-blur-sm border-2 border-cyan-500/50" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
+                  <CardHeader className="border-b-2 border-cyan-500/30">
+                    <CardTitle className="flex items-center gap-2 text-lg text-cyan-400 font-black tracking-wide">
+                      <MessageCircle className="w-5 h-5" />
+                      COMMUNITY TIPS ⚡
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 space-y-3">
-                    <p className="text-xs text-gray-600 text-center mb-2">
-                      💡 Money-saving tips from students worldwide
+                    <p className="text-xs text-gray-400 text-center font-bold tracking-wide mb-2">
+                      💡 MONEY-SAVING TIPS FROM STUDENTS WORLDWIDE
                     </p>
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                    <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
                       {COMMUNITY_POSTS.map((post, index) => (
                         <motion.div
                           key={post.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="border-2 border-gray-200 bg-gray-50 rounded-xl p-3 hover:border-blue-300 hover:bg-blue-50 transition-all"
+                          className="border-2 border-gray-700 bg-gray-900/50 rounded-xl p-3 hover:border-cyan-400 hover:bg-cyan-900/20 transition-all backdrop-blur-sm"
                         >
                           <div className="flex items-start gap-2 mb-2">
                             <div className="text-2xl">{post.avatar}</div>
                             <div className="flex-1">
                               <div className="flex items-center justify-between mb-1">
-                                <p className="font-bold text-sm text-gray-800">{post.author}</p>
-                                <span className="text-xs text-gray-500">{post.time}</span>
+                                <p className="font-black text-sm text-cyan-400">{post.author}</p>
+                                <span className="text-xs text-gray-500 font-bold">{post.time}</span>
                               </div>
-                              <p className="text-xs text-gray-600 mb-1">
-                                <MapPin className="w-3 h-3 inline mr-1 text-blue-600" />
+                              <p className="text-xs text-gray-400 font-bold">
+                                <MapPin className="w-3 h-3 inline mr-1 text-purple-400" />
                                 {post.city}
                               </p>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-700 mb-2">{post.tip}</p>
+                          <p className="text-sm text-gray-300 mb-2 font-medium">{post.tip}</p>
                           <div className="flex items-center gap-3 text-xs text-gray-500">
-                            <button className="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                            <button className="flex items-center gap-1 hover:text-cyan-400 transition-colors font-bold">
                               <ThumbsUp className="w-3 h-3" />
                               {post.likes}
                             </button>
@@ -1068,23 +1187,23 @@ export default function Home() {
             transition={{ delay: 1 }}
             className="mt-8 text-center"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md mb-4">
-              <span className="text-gray-600 text-xs font-semibold">🎮 XRP TESTNET • EDUCATIONAL USE ONLY</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/20 border-2 border-cyan-500 rounded-full mb-4">
+              <span className="text-cyan-400 text-xs font-black tracking-wider">🎮 XRP TESTNET • EDUCATIONAL USE ONLY ⚡</span>
             </div>
             
-            <div className="bg-white rounded-xl p-4 shadow-lg">
-              <p className="text-sm font-bold text-gray-800 mb-3">💡 Study Abroad Financial Tips</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-600">
-                <div className="text-center">
-                  <p className="font-bold text-blue-600">🏦 Open Local Account</p>
+            <div className="bg-black/40 backdrop-blur-sm border-2 border-purple-500/50 rounded-xl p-4">
+              <p className="text-sm font-black text-purple-400 mb-3 tracking-wide">💡 STUDY ABROAD FINANCIAL TIPS</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-400 font-bold">
+                <div className="text-center border-2 border-cyan-500/30 rounded-lg p-3 bg-cyan-900/10">
+                  <p className="font-black text-cyan-400 tracking-wide">🏦 OPEN LOCAL ACCOUNT</p>
                   <p>Save on international fees</p>
                 </div>
-                <div className="text-center">
-                  <p className="font-bold text-purple-600">📱 Use Budget Apps</p>
+                <div className="text-center border-2 border-purple-500/30 rounded-lg p-3 bg-purple-900/10">
+                  <p className="font-black text-purple-400 tracking-wide">📱 USE BUDGET APPS</p>
                   <p>Track spending real-time</p>
                 </div>
-                <div className="text-center">
-                  <p className="font-bold text-pink-600">🍜 Cook at Home</p>
+                <div className="text-center border-2 border-pink-500/30 rounded-lg p-3 bg-pink-900/10">
+                  <p className="font-black text-pink-400 tracking-wide">🍜 COOK AT HOME</p>
                   <p>Save 50%+ on food costs</p>
                 </div>
               </div>
@@ -1092,6 +1211,23 @@ export default function Home() {
           </motion.div>
         </div>
       </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.5);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(0, 255, 255, 0.5);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(0, 255, 255, 0.8);
+        }
+      `}</style>
     </div>
   );
 }
