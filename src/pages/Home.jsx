@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Wallet, TrendingUp, Award, Sparkles, Euro } from "lucide-react";
+import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
@@ -18,6 +18,7 @@ export default function Home() {
   const [nftMinted, setNftMinted] = useState(false);
   const [error, setError] = useState(null);
   const [xrplLoaded, setXrplLoaded] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Load xrpl.js from CDN
   useEffect(() => {
@@ -44,6 +45,11 @@ export default function Home() {
     const bal = inc - exp;
     setBalance(bal);
     setError(null);
+    
+    if (bal > 50) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+    }
   };
 
   const generateWallet = async () => {
@@ -80,17 +86,12 @@ export default function Home() {
       setIsMinting(true);
       setError(null);
 
-      // Connect to testnet
       const client = new window.xrpl.Client('wss://s.altnet.rippletest.net:51233');
       await client.connect();
 
-      // Recreate wallet from seed
       const wallet = window.xrpl.Wallet.fromSeed(walletSeed);
-
-      // Fund the wallet on testnet (required for first-time accounts)
       await client.fundWallet(wallet);
 
-      // Prepare NFT mint transaction
       const nftMintTx = {
         TransactionType: 'NFTokenMint',
         Account: wallet.address,
@@ -106,13 +107,14 @@ export default function Home() {
         NFTokenTaxon: 0
       };
 
-      // Auto-fill, sign, and submit
       const prepared = await client.autofill(nftMintTx);
       const signed = wallet.sign(prepared);
       const result = await client.submitAndWait(signed.tx_blob);
 
       if (result.result.meta.TransactionResult === 'tesSUCCESS') {
         setNftMinted(true);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
       } else {
         setError('NFT minting failed: ' + result.result.meta.TransactionResult);
       }
@@ -129,199 +131,494 @@ export default function Home() {
   const canMintNFT = balance !== null && balance > 50 && walletAddress && !nftMinted;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            CampusFi
-          </h1>
-          <p className="text-gray-600">Smart budgeting for smart students</p>
-        </motion.div>
+    <div className="min-h-screen relative overflow-hidden bg-black">
+      {/* Animated Retro Grid Background */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px',
+          animation: 'grid-move 20s linear infinite'
+        }}></div>
+      </div>
 
-        {/* Error Alert */}
-        <AnimatePresence>
-          {error && (
+      {/* Floating Particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-cyan-400 rounded-full"
+            initial={{ 
+              x: Math.random() * window.innerWidth, 
+              y: Math.random() * window.innerHeight,
+              opacity: 0.3
+            }}
+            animate={{
+              y: [null, Math.random() * -100 - 100],
+              opacity: [0.3, 0, 0.3]
+            }}
+            transition={{
+              duration: Math.random() * 3 + 2,
+              repeat: Infinity,
+              delay: Math.random() * 2
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Confetti Effect */}
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50">
+          {[...Array(50)].map((_, i) => (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mb-6"
+              key={i}
+              className="absolute text-2xl"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: '-10%'
+              }}
+              initial={{ y: 0, rotate: 0, opacity: 1 }}
+              animate={{ 
+                y: window.innerHeight + 100, 
+                rotate: 360,
+                opacity: 0
+              }}
+              transition={{ duration: Math.random() * 2 + 2, delay: Math.random() * 0.5 }}
             >
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              {['⭐', '💎', '🎮', '🏆', '💰'][Math.floor(Math.random() * 5)]}
             </motion.div>
-          )}
-        </AnimatePresence>
+          ))}
+        </div>
+      )}
 
-        {/* Budget Calculator Card */}
-        <Card className="mb-6 shadow-xl border-0">
-          <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2">
-              <Euro className="w-5 h-5" />
-              Monthly Budget Calculator
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="income" className="text-sm font-medium">Monthly Income (€)</Label>
-                <Input
-                  id="income"
-                  type="number"
-                  placeholder="1000"
-                  value={income}
-                  onChange={(e) => setIncome(e.target.value)}
-                  className="mt-1"
-                />
+      <style jsx>{`
+        @keyframes grid-move {
+          0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+          100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+        @keyframes neon-glow {
+          0%, 100% { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff; }
+          50% { text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff, 0 0 50px #ff00ff; }
+        }
+        @keyframes pulse-border {
+          0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.1); }
+          50% { box-shadow: 0 0 30px rgba(255, 0, 255, 0.5), inset 0 0 30px rgba(255, 0, 255, 0.1); }
+        }
+      `}</style>
+
+      <div className="relative z-10 p-4 md:p-8">
+        <div className="max-w-2xl mx-auto">
+          {/* Retro Header */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center mb-8 md:mb-12"
+          >
+            <motion.div 
+              className="inline-block mb-6"
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-cyan-500 blur-xl opacity-50"></div>
+                <div className="relative bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 p-1 rounded-2xl">
+                  <div className="bg-black p-4 rounded-xl">
+                    <Zap className="w-12 h-12 text-cyan-400" />
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="expenses" className="text-sm font-medium">Monthly Expenses (€)</Label>
-                <Input
-                  id="expenses"
-                  type="number"
-                  placeholder="800"
-                  value={expenses}
-                  onChange={(e) => setExpenses(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <Button 
-                onClick={calculateBalance} 
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
-              >
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Calculate Balance
-              </Button>
+            </motion.div>
+            
+            <motion.h1 
+              className="text-5xl md:text-7xl font-black mb-3 tracking-wider"
+              style={{
+                fontFamily: 'Arial Black, sans-serif',
+                background: 'linear-gradient(45deg, #00ffff, #ff00ff, #ffff00)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                animation: 'neon-glow 2s ease-in-out infinite'
+              }}
+            >
+              CAMPUS<span className="text-pink-500">Fi</span>
+            </motion.h1>
+            
+            <div className="flex items-center justify-center gap-2 text-cyan-400 text-sm md:text-base font-bold tracking-widest">
+              <Star className="w-4 h-4" />
+              <span className="uppercase">Level Up Your Savings</span>
+              <Star className="w-4 h-4" />
             </div>
 
-            {/* Balance Result */}
-            <AnimatePresence>
-              {balance !== null && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="mt-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200"
-                >
-                  <p className="text-sm text-gray-600 mb-1">Your Monthly Savings</p>
-                  <p className={`text-4xl font-bold ${balance > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    €{balance.toFixed(2)}
-                  </p>
-                  {balance > 50 && (
-                    <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
-                      <Sparkles className="w-4 h-4" />
-                      Eligible for Smart Saver NFT!
-                    </p>
-                  )}
-                  {balance > 0 && balance <= 50 && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      Save €{(51 - balance).toFixed(2)} more to earn your NFT badge!
-                    </p>
-                  )}
-                  {balance <= 0 && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      Try reducing expenses to build savings!
-                    </p>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardContent>
-        </Card>
+            <div className="mt-4 flex justify-center gap-4">
+              <div className="px-4 py-1 bg-cyan-500/20 border border-cyan-500 rounded-full">
+                <span className="text-cyan-400 text-xs font-bold">🎮 WEB3 GAMING</span>
+              </div>
+              <div className="px-4 py-1 bg-pink-500/20 border border-pink-500 rounded-full">
+                <span className="text-pink-400 text-xs font-bold">⚡ XRP LEDGER</span>
+              </div>
+            </div>
+          </motion.div>
 
-        {/* Wallet & NFT Section */}
-        <AnimatePresence>
-          {balance !== null && balance > 50 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Card className="shadow-xl border-0 overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="w-5 h-5" />
-                    Claim Your Smart Saver NFT
+          {/* Error Alert */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="mb-6"
+              >
+                <div className="bg-red-500/10 border-2 border-red-500 rounded-xl p-4 backdrop-blur-sm">
+                  <p className="text-red-400 font-bold text-center">⚠️ {error}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Budget Calculator Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <div className="relative">
+              {/* Glowing border effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-75 animate-pulse"></div>
+              
+              <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-cyan-500 shadow-2xl overflow-hidden" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
+                {/* Scanline effect */}
+                <div className="absolute inset-0 pointer-events-none opacity-10" style={{
+                  backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.5) 2px, rgba(0, 255, 255, 0.5) 4px)'
+                }}></div>
+
+                <CardHeader className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-b-2 border-cyan-500">
+                  <CardTitle className="flex items-center gap-3 text-cyan-400 text-xl md:text-2xl font-black uppercase tracking-wider">
+                    <div className="p-2 bg-cyan-500/20 rounded-lg">
+                      <Coins className="w-6 h-6" />
+                    </div>
+                    Budget Calculator
+                    <div className="ml-auto text-xs bg-pink-500/30 px-3 py-1 rounded-full border border-pink-500">
+                      MISSION 1
+                    </div>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  {!walletAddress ? (
-                    <div className="text-center">
-                      <p className="text-gray-600 mb-4">
-                        Generate a testnet wallet to mint your NFT badge
-                      </p>
-                      <Button
-                        onClick={generateWallet}
-                        disabled={isConnecting || !xrplLoaded}
-                        className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
-                      >
-                        <Wallet className="w-4 h-4 mr-2" />
-                        {isConnecting ? 'Generating...' : 'Generate Wallet'}
-                      </Button>
+                
+                <CardContent className="p-6 space-y-5">
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <Label className="text-cyan-400 font-bold uppercase text-xs tracking-wider mb-2 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4" />
+                        Income Credits (€)
+                      </Label>
+                      <Input
+                        type="number"
+                        placeholder="1000"
+                        value={income}
+                        onChange={(e) => setIncome(e.target.value)}
+                        className="bg-black/50 border-2 border-cyan-500/50 focus:border-cyan-400 text-cyan-300 text-lg font-bold placeholder:text-cyan-800 rounded-xl h-14"
+                      />
+                      <div className="absolute right-3 top-[38px] text-cyan-500 font-black">€</div>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Wallet Info */}
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500 mb-1">Testnet Wallet Address</p>
-                        <p className="text-sm font-mono break-all text-gray-800">{walletAddress}</p>
-                        <p className="text-xs text-gray-500 mt-3 mb-1">Secret Seed (Keep safe!)</p>
-                        <p className="text-sm font-mono break-all text-gray-800">{walletSeed}</p>
-                      </div>
 
-                      {!nftMinted ? (
-                        <Button
-                          onClick={mintNFT}
-                          disabled={isMinting || !canMintNFT}
-                          className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
-                        >
-                          <Award className="w-4 h-4 mr-2" />
-                          {isMinting ? 'Minting NFT...' : 'Mint Smart Saver NFT'}
-                        </Button>
-                      ) : (
-                        <motion.div
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className="text-center p-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-200"
-                        >
-                          <div className="text-6xl mb-3">🎉</div>
-                          <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                            Congratulations!
-                          </h3>
-                          <p className="text-gray-600">
-                            Your Smart Saver NFT has been minted on XRP Ledger Testnet!
-                          </p>
-                          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
-                            <Award className="w-5 h-5 text-purple-600" />
-                            <span className="font-medium text-gray-800">Smart Saver Badge</span>
-                          </div>
-                        </motion.div>
-                      )}
+                    <div className="relative">
+                      <Label className="text-pink-400 font-bold uppercase text-xs tracking-wider mb-2 flex items-center gap-2">
+                        <Zap className="w-4 h-4" />
+                        Expense Drain (€)
+                      </Label>
+                      <Input
+                        type="number"
+                        placeholder="800"
+                        value={expenses}
+                        onChange={(e) => setExpenses(e.target.value)}
+                        className="bg-black/50 border-2 border-pink-500/50 focus:border-pink-400 text-pink-300 text-lg font-bold placeholder:text-pink-800 rounded-xl h-14"
+                      />
+                      <div className="absolute right-3 top-[38px] text-pink-500 font-black">€</div>
                     </div>
-                  )}
+                  </div>
+
+                  <Button 
+                    onClick={calculateBalance}
+                    className="w-full h-14 text-lg font-black uppercase tracking-wider relative overflow-hidden group"
+                    style={{
+                      background: 'linear-gradient(45deg, #00ffff, #ff00ff)',
+                      border: 'none'
+                    }}
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2 text-black">
+                      <Trophy className="w-5 h-5" />
+                      Calculate Score
+                      <Trophy className="w-5 h-5" />
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </Button>
+
+                  {/* Balance Result */}
+                  <AnimatePresence>
+                    {balance !== null && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="relative mt-6"
+                      >
+                        <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-cyan-400 rounded-2xl blur opacity-75"></div>
+                        <div className="relative bg-black border-2 border-green-400 rounded-2xl p-6 overflow-hidden">
+                          {/* Animated background */}
+                          <div className="absolute inset-0 opacity-10" style={{
+                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 255, 0, 0.3) 10px, rgba(0, 255, 0, 0.3) 20px)'
+                          }}></div>
+
+                          <div className="relative">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-green-400 font-bold uppercase text-xs tracking-wider">💎 Savings Power</span>
+                              <span className="text-green-400 font-bold text-xs">LVL {balance > 100 ? '3' : balance > 50 ? '2' : '1'}</span>
+                            </div>
+                            
+                            <div className="text-center mb-4">
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className={`text-6xl font-black ${balance > 0 ? 'text-green-400' : 'text-red-400'}`}
+                                style={{
+                                  textShadow: balance > 0 
+                                    ? '0 0 20px rgba(0, 255, 0, 0.8), 0 0 40px rgba(0, 255, 0, 0.5)'
+                                    : '0 0 20px rgba(255, 0, 0, 0.8)'
+                                }}
+                              >
+                                €{Math.abs(balance).toFixed(2)}
+                              </motion.div>
+                              {balance < 0 && (
+                                <div className="text-red-400 font-bold mt-2">⚠️ DEFICIT MODE</div>
+                              )}
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="relative h-8 bg-black/50 rounded-full overflow-hidden border-2 border-green-500/50 mb-3">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.min((balance / 100) * 100, 100)}%` }}
+                                className="h-full bg-gradient-to-r from-green-400 to-cyan-400 relative"
+                                style={{
+                                  boxShadow: '0 0 20px rgba(0, 255, 0, 0.8)'
+                                }}
+                              >
+                                <div className="absolute inset-0 opacity-30" style={{
+                                  backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(255, 255, 255, 0.5) 5px, rgba(255, 255, 255, 0.5) 10px)'
+                                }}></div>
+                              </motion.div>
+                              <div className="absolute inset-0 flex items-center justify-center text-white font-black text-xs">
+                                {Math.min(balance, 100).toFixed(0)}%
+                              </div>
+                            </div>
+
+                            {balance > 50 && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-center"
+                              >
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full text-black font-black text-sm">
+                                  <Award className="w-4 h-4" />
+                                  NFT BADGE UNLOCKED!
+                                  <Sparkles className="w-4 h-4" />
+                                </div>
+                              </motion.div>
+                            )}
+                            {balance > 0 && balance <= 50 && (
+                              <div className="text-center text-cyan-400 text-sm font-bold">
+                                💪 Save €{(51 - balance).toFixed(2)} more to unlock NFT!
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </CardContent>
               </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </motion.div>
 
-        {/* Info Footer */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-8 text-center text-sm text-gray-500"
-        >
-          <p>💡 This app uses XRP Ledger Testnet for learning purposes</p>
-          <p className="mt-1">Testnet XRP has no real-world value</p>
-        </motion.div>
+          {/* Wallet & NFT Section */}
+          <AnimatePresence>
+            {balance !== null && balance > 50 && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 30 }}
+              >
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 rounded-2xl blur opacity-75 animate-pulse"></div>
+                  
+                  <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-purple-500 overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b-2 border-purple-500">
+                      <CardTitle className="flex items-center gap-3 text-purple-400 text-xl md:text-2xl font-black uppercase tracking-wider">
+                        <div className="p-2 bg-purple-500/20 rounded-lg">
+                          <Award className="w-6 h-6" />
+                        </div>
+                        NFT Mint Zone
+                        <div className="ml-auto text-xs bg-yellow-500/30 px-3 py-1 rounded-full border border-yellow-500 text-yellow-400">
+                          MISSION 2
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    
+                    <CardContent className="p-6">
+                      {!walletAddress ? (
+                        <div className="text-center space-y-6">
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                            className="w-24 h-24 mx-auto bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
+                          >
+                            <Wallet className="w-12 h-12 text-white" />
+                          </motion.div>
+                          
+                          <div>
+                            <p className="text-cyan-400 font-bold text-lg mb-2">⚡ INITIALIZE WALLET</p>
+                            <p className="text-gray-400 text-sm">Generate your testnet credentials</p>
+                          </div>
+
+                          <Button
+                            onClick={generateWallet}
+                            disabled={isConnecting || !xrplLoaded}
+                            className="w-full h-14 text-lg font-black uppercase tracking-wider relative overflow-hidden group"
+                            style={{
+                              background: 'linear-gradient(45deg, #a855f7, #ec4899)',
+                              border: 'none'
+                            }}
+                          >
+                            <span className="relative z-10 flex items-center justify-center gap-2 text-white">
+                              {isConnecting ? (
+                                <>
+                                  <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                  >
+                                    <Zap className="w-5 h-5" />
+                                  </motion.div>
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <Wallet className="w-5 h-5" />
+                                  Generate Wallet
+                                  <Sparkles className="w-5 h-5" />
+                                </>
+                              )}
+                            </span>
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-5">
+                          {/* Wallet Display */}
+                          <div className="relative">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-xl blur opacity-50"></div>
+                            <div className="relative bg-black/90 border-2 border-cyan-400 rounded-xl p-4 space-y-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-cyan-400 font-bold text-xs uppercase tracking-wider">🔐 Wallet ID</span>
+                                <span className="text-green-400 text-xs font-bold">● ACTIVE</span>
+                              </div>
+                              <div className="bg-black/50 p-3 rounded-lg border border-cyan-500/30">
+                                <p className="text-cyan-300 font-mono text-xs break-all">{walletAddress}</p>
+                              </div>
+                              
+                              <div className="pt-2 border-t border-cyan-500/30">
+                                <span className="text-pink-400 font-bold text-xs uppercase tracking-wider">🔑 Secret Seed</span>
+                                <div className="bg-black/50 p-3 rounded-lg border border-pink-500/30 mt-2">
+                                  <p className="text-pink-300 font-mono text-xs break-all">{walletSeed}</p>
+                                </div>
+                                <p className="text-yellow-400 text-xs mt-2 font-bold">⚠️ Save this securely!</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {!nftMinted ? (
+                            <Button
+                              onClick={mintNFT}
+                              disabled={isMinting || !canMintNFT}
+                              className="w-full h-16 text-xl font-black uppercase tracking-wider relative overflow-hidden"
+                              style={{
+                                background: 'linear-gradient(45deg, #fbbf24, #f59e0b, #ef4444)',
+                                border: '2px solid #fbbf24'
+                              }}
+                            >
+                              {isMinting ? (
+                                <span className="relative z-10 flex items-center justify-center gap-3 text-black">
+                                  <motion.div
+                                    animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+                                    transition={{ duration: 1, repeat: Infinity }}
+                                  >
+                                    <Zap className="w-6 h-6" />
+                                  </motion.div>
+                                  Minting NFT...
+                                </span>
+                              ) : (
+                                <span className="relative z-10 flex items-center justify-center gap-3 text-black">
+                                  <Trophy className="w-6 h-6" />
+                                  MINT NFT BADGE
+                                  <Trophy className="w-6 h-6" />
+                                </span>
+                              )}
+                            </Button>
+                          ) : (
+                            <motion.div
+                              initial={{ scale: 0.5, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              className="relative"
+                            >
+                              <div className="absolute -inset-2 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 rounded-2xl blur-lg opacity-75 animate-pulse"></div>
+                              <div className="relative bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-8 text-center border-4 border-yellow-300">
+                                <motion.div
+                                  animate={{ 
+                                    rotate: [0, 10, -10, 0],
+                                    scale: [1, 1.1, 1]
+                                  }}
+                                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
+                                  className="text-8xl mb-4"
+                                >
+                                  🏆
+                                </motion.div>
+                                <h3 className="text-3xl font-black text-black mb-2 uppercase">
+                                  Victory!
+                                </h3>
+                                <p className="text-black/80 font-bold text-lg mb-4">
+                                  Smart Saver NFT Minted
+                                </p>
+                                <div className="inline-flex items-center gap-2 px-6 py-3 bg-black rounded-full">
+                                  <Award className="w-5 h-5 text-yellow-400" />
+                                  <span className="font-black text-yellow-400 uppercase">Level Complete</span>
+                                  <Star className="w-5 h-5 text-yellow-400" />
+                                </div>
+                                <div className="mt-4 text-sm text-black/70 font-bold">
+                                  🎮 Achievement Unlocked: Financial Warrior
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Retro Footer */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="mt-8 text-center space-y-2"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full">
+              <span className="text-cyan-400 text-xs font-bold">🎮 XRP LEDGER TESTNET</span>
+            </div>
+            <p className="text-gray-500 text-xs">No real value • Educational purposes only</p>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
