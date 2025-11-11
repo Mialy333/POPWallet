@@ -122,7 +122,7 @@ const COMMUNITY_POSTS = [
     author: 'Priya M.',
     avatar: '👩‍🔬',
     city: 'London',
-    tip: 'Tesco Express has 50% off ready meals after 8pm. Perfect for budget dinners! 🌙',
+    tip: 'Tesco Express has 50% off ready meals after 8pm. Perfect for budget dinners!🌙',
     likes: 81,
     time: '2d ago'
   }
@@ -596,8 +596,8 @@ export default function Home() {
           100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
         }
         @keyframes neon-glow {
-          0%, 100% { text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff; }
-          50% { text-shadow: 0 0 10px #00ffff, 0 0 15px #00ffff, 0 0 20px #00ffff, 0 0 25px #ff00ff; }
+          0%, 100% { text-shadow: 0 0 2px #00ffff, 0 0 4px #00ffff; }
+          50% { text-shadow: 0 0 3px #00ffff, 0 0 6px #00ffff, 0 0 8px #ff00ff; }
         }
         @keyframes pulse-border {
           0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.1); }
@@ -637,6 +637,7 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center mb-8"
           >
+            
             <motion.div 
               className="inline-block mb-4"
               animate={{ y: [0, -10, 0] }}
