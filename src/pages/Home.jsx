@@ -330,13 +330,13 @@ export default function Home() {
 
       <div className="relative z-10 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Retro Header with Travel Theme */}
+          {/* Retro Header with Travel Theme - MODIFIED LOGO */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             className="text-center mb-8"
           >
-            {/* Travel Badge */}
+            {/* Travel Badge - UPDATED: Student Hat above Globe */}
             <motion.div 
               className="inline-block mb-4"
               animate={{ y: [0, -10, 0] }}
@@ -346,10 +346,9 @@ export default function Home() {
                 <div className="absolute inset-0 bg-cyan-500 blur-xl opacity-50"></div>
                 <div className="relative bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 p-1 rounded-2xl">
                   <div className="bg-black p-4 rounded-xl border-2 border-dashed border-cyan-400/50">
-                    <div className="flex items-center gap-3">
-                      <GraduationCap className="w-8 h-8 text-cyan-400" />
-                      <Plane className="w-8 h-8 text-purple-400" style={{ animation: 'float 3s ease-in-out infinite' }} />
-                      <Globe className="w-8 h-8 text-pink-400" />
+                    <div className="flex flex-col items-center gap-2">
+                      <GraduationCap className="w-10 h-10 text-cyan-400" />
+                      <Globe className="w-10 h-10 text-pink-400" />
                     </div>
                   </div>
                 </div>
