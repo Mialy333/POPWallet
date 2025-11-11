@@ -4,19 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins, Globe, Target, CheckCircle2, Lock } from "lucide-react";
+import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins, Globe, Target, CheckCircle2, Lock, Plane, Map, MapPin, Passport, GraduationCap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const CURRENCY_RATES = {
-  EUR: { symbol: '€', rate: 1, name: 'Euro' },
-  USD: { symbol: '$', rate: 1.09, name: 'US Dollar' },
-  GBP: { symbol: '£', rate: 0.86, name: 'British Pound' },
-  INR: { symbol: '₹', rate: 90.5, name: 'Indian Rupee' },
-  CNY: { symbol: '¥', rate: 7.85, name: 'Chinese Yuan' },
-  JPY: { symbol: '¥', rate: 161.2, name: 'Japanese Yen' },
-  BRL: { symbol: 'R$', rate: 5.42, name: 'Brazilian Real' },
-  NGN: { symbol: '₦', rate: 870, name: 'Nigerian Naira' }
+  EUR: { symbol: '€', rate: 1, name: 'Euro', flag: '🇪🇺', country: 'Europe' },
+  USD: { symbol: '$', rate: 1.09, name: 'US Dollar', flag: '🇺🇸', country: 'USA' },
+  GBP: { symbol: '£', rate: 0.86, name: 'British Pound', flag: '🇬🇧', country: 'UK' },
+  INR: { symbol: '₹', rate: 90.5, name: 'Indian Rupee', flag: '🇮🇳', country: 'India' },
+  CNY: { symbol: '¥', rate: 7.85, name: 'Chinese Yuan', flag: '🇨🇳', country: 'China' },
+  JPY: { symbol: '¥', rate: 161.2, name: 'Japanese Yen', flag: '🇯🇵', country: 'Japan' },
+  BRL: { symbol: 'R$', rate: 5.42, name: 'Brazilian Real', flag: '🇧🇷', country: 'Brazil' },
+  NGN: { symbol: '₦', rate: 870, name: 'Nigerian Naira', flag: '🇳🇬', country: 'Nigeria' }
 };
 
 export default function Home() {
@@ -142,11 +142,9 @@ export default function Home() {
 
       const wallet = window.xrpl.Wallet.fromSeed(walletSeed);
       
-      // Fund wallet if needed
       try {
         await client.fundWallet(wallet);
       } catch (e) {
-        // Wallet might already be funded
         console.log('Wallet funding skipped or already funded');
       }
 
@@ -259,27 +257,29 @@ export default function Home() {
         }}></div>
       </div>
 
-      {/* Floating Particles */}
+      {/* Floating Travel Icons */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {['✈️', '🌍', '🎓', '🗺️', '🧳', '📚', '🏛️', '🎒'].map((icon, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-cyan-400 rounded-full"
+            className="absolute text-3xl opacity-20"
             initial={{ 
               x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000), 
               y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
-              opacity: 0.3
             }}
             animate={{
-              y: [null, Math.random() * -100 - 100],
-              opacity: [0.3, 0, 0.3]
+              x: [null, Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000)],
+              y: [null, Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000)],
+              rotate: [0, 360]
             }}
             transition={{
-              duration: Math.random() * 3 + 2,
+              duration: Math.random() * 20 + 20,
               repeat: Infinity,
-              delay: Math.random() * 2
+              ease: "linear"
             }}
-          />
+          >
+            {icon}
+          </motion.div>
         ))}
       </div>
 
@@ -302,7 +302,7 @@ export default function Home() {
               }}
               transition={{ duration: Math.random() * 2 + 2, delay: Math.random() * 0.5 }}
             >
-              {['⭐', '💎', '🎮', '🏆', '💰'][Math.floor(Math.random() * 5)]}
+              {['⭐', '💎', '🎮', '🏆', '💰', '✈️', '🌍', '🎓'][Math.floor(Math.random() * 8)]}
             </motion.div>
           ))}
         </div>
@@ -321,26 +321,35 @@ export default function Home() {
           0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.1); }
           50% { box-shadow: 0 0 30px rgba(255, 0, 255, 0.5), inset 0 0 30px rgba(255, 0, 255, 0.1); }
         }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
       `}</style>
 
       <div className="relative z-10 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Retro Header */}
+          {/* Retro Header with Travel Theme */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             className="text-center mb-8"
           >
+            {/* Passport-style Badge */}
             <motion.div 
               className="inline-block mb-4"
               animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              transition={{ duration: 3, repeat: Infinity }}
             >
               <div className="relative">
                 <div className="absolute inset-0 bg-cyan-500 blur-xl opacity-50"></div>
                 <div className="relative bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 p-1 rounded-2xl">
-                  <div className="bg-black p-3 rounded-xl">
-                    <Zap className="w-10 h-10 text-cyan-400" />
+                  <div className="bg-black p-4 rounded-xl border-2 border-dashed border-cyan-400/50">
+                    <div className="flex items-center gap-3">
+                      <GraduationCap className="w-8 h-8 text-cyan-400" />
+                      <Plane className="w-8 h-8 text-purple-400" style={{ animation: 'float 3s ease-in-out infinite' }} />
+                      <Globe className="w-8 h-8 text-pink-400" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -360,22 +369,51 @@ export default function Home() {
             </motion.h1>
             
             <div className="flex items-center justify-center gap-2 text-cyan-400 text-xs md:text-sm font-bold tracking-widest mb-3">
-              <Star className="w-4 h-4" />
-              <span className="uppercase">International Student Edition</span>
-              <Star className="w-4 h-4" />
+              <Passport className="w-4 h-4" />
+              <span className="uppercase">Your Study Abroad Financial Companion</span>
+              <Passport className="w-4 h-4" />
+            </div>
+
+            {/* Country Flags Animation */}
+            <div className="flex flex-wrap justify-center gap-2 mb-4">
+              {Object.values(CURRENCY_RATES).map((curr, i) => (
+                <motion.div
+                  key={curr.country}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="text-2xl"
+                  style={{ animation: `float ${2 + i * 0.3}s ease-in-out infinite` }}
+                >
+                  {curr.flag}
+                </motion.div>
+              ))}
             </div>
 
             <div className="flex flex-wrap justify-center gap-2">
               <div className="px-3 py-1 bg-cyan-500/20 border border-cyan-500 rounded-full">
-                <span className="text-cyan-400 text-xs font-bold">🌍 GLOBAL</span>
+                <span className="text-cyan-400 text-xs font-bold">🌍 8 COUNTRIES</span>
               </div>
               <div className="px-3 py-1 bg-purple-500/20 border border-purple-500 rounded-full">
-                <span className="text-purple-400 text-xs font-bold">🎮 GAMIFIED</span>
+                <span className="text-purple-400 text-xs font-bold">✈️ STUDY ABROAD</span>
               </div>
               <div className="px-3 py-1 bg-pink-500/20 border border-pink-500 rounded-full">
-                <span className="text-pink-400 text-xs font-bold">⚡ XRP NFT</span>
+                <span className="text-pink-400 text-xs font-bold">🎓 STUDENT LIFE</span>
+              </div>
+              <div className="px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full">
+                <span className="text-yellow-400 text-xs font-bold">💎 XRP NFT</span>
               </div>
             </div>
+
+            {/* Motivational Quote */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-4 text-gray-400 text-sm italic"
+            >
+              "Master your money, conquer the world 🌍"
+            </motion.div>
           </motion.div>
 
           {/* Error Alert */}
@@ -403,10 +441,18 @@ export default function Home() {
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-2xl blur opacity-50"></div>
               <div className="relative bg-black/90 backdrop-blur-xl border-2 border-yellow-500 rounded-2xl p-4 md:p-6">
-                <h2 className="text-yellow-400 font-black text-xl md:text-2xl uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <Trophy className="w-6 h-6" />
-                  Mission Control
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-yellow-400 font-black text-xl md:text-2xl uppercase tracking-wider flex items-center gap-2">
+                    <Map className="w-6 h-6" />
+                    Your Study Abroad Journey
+                  </h2>
+                  <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full">
+                    <MapPin className="w-4 h-4 text-yellow-400" />
+                    <span className="text-yellow-400 text-xs font-bold">
+                      {missions.filter(m => m.completed).length}/3 Destinations
+                    </span>
+                  </div>
+                </div>
                 <div className="grid md:grid-cols-3 gap-4">
                   {missions.map((mission, index) => (
                     <motion.div
@@ -429,15 +475,21 @@ export default function Home() {
                           }`} />
                         </div>
                         {mission.completed ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-400" />
+                          <div className="flex items-center gap-1 px-2 py-1 bg-green-500/20 border border-green-500 rounded-full">
+                            <CheckCircle2 className="w-3 h-3 text-green-400" />
+                            <span className="text-green-400 text-xs font-bold">DONE</span>
+                          </div>
                         ) : (
-                          <Lock className="w-5 h-5 text-gray-500" />
+                          <div className="flex items-center gap-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded-full">
+                            <Lock className="w-3 h-3 text-gray-500" />
+                            <span className="text-gray-500 text-xs font-bold">LOCKED</span>
+                          </div>
                         )}
                       </div>
                       <h3 className={`font-black text-sm uppercase ${
                         mission.completed ? `text-${mission.color}-400` : 'text-gray-500'
                       }`}>
-                        Level {index + 1}: {mission.title}
+                        🎯 {mission.title}
                       </h3>
                       <p className="text-gray-400 text-xs mt-1">{mission.description}</p>
                       {mission.completed && !mintedNFTs[mission.nftType] && walletAddress && (
@@ -449,14 +501,14 @@ export default function Home() {
                             background: `linear-gradient(45deg, var(--${mission.color}-500), var(--${mission.color}-600))`
                           }}
                         >
-                          {currentlyMinting === mission.nftType ? 'Minting...' : 'Mint NFT'}
+                          {currentlyMinting === mission.nftType ? '⚡ Minting...' : '💎 Claim NFT Badge'}
                         </Button>
                       )}
                       {mintedNFTs[mission.nftType] && (
                         <div className="mt-3 text-center">
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-500/20 border border-green-500 rounded-full text-green-400 text-xs font-bold">
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full text-yellow-400 text-xs font-bold">
                             <Award className="w-3 h-3" />
-                            NFT CLAIMED
+                            NFT BADGE EARNED
                           </span>
                         </div>
                       )}
@@ -488,9 +540,11 @@ export default function Home() {
                         <div className="p-2 bg-cyan-500/20 rounded-lg">
                           <Coins className="w-5 h-5" />
                         </div>
-                        Budget Calculator
-                        <div className="ml-auto text-xs bg-cyan-500/30 px-2 py-1 rounded-full border border-cyan-500">
-                          LVL 1
+                        Student Budget
+                        <div className="ml-auto flex items-center gap-2">
+                          <span className="text-xs bg-cyan-500/30 px-2 py-1 rounded-full border border-cyan-500">
+                            🎯 MISSION 1
+                          </span>
                         </div>
                       </CardTitle>
                     </CardHeader>
@@ -509,6 +563,7 @@ export default function Home() {
                             onChange={(e) => setIncome(e.target.value)}
                             className="bg-black/50 border-2 border-cyan-500/50 focus:border-cyan-400 text-cyan-300 text-lg font-bold placeholder:text-cyan-800 rounded-xl h-12"
                           />
+                          <div className="absolute right-3 top-[38px] text-xl">💶</div>
                         </div>
 
                         <div className="relative">
@@ -523,6 +578,7 @@ export default function Home() {
                             onChange={(e) => setExpenses(e.target.value)}
                             className="bg-black/50 border-2 border-pink-500/50 focus:border-pink-400 text-pink-300 text-lg font-bold placeholder:text-pink-800 rounded-xl h-12"
                           />
+                          <div className="absolute right-3 top-[38px] text-xl">🏠</div>
                         </div>
                       </div>
 
@@ -530,7 +586,7 @@ export default function Home() {
                       {income && expenses && (
                         <div className="space-y-2">
                           <div className="flex justify-between text-xs font-bold">
-                            <span className="text-gray-400">Budget Usage</span>
+                            <span className="text-gray-400">💰 Budget Usage</span>
                             <span className={`${
                               getSpendingPercentage() < 50 ? 'text-green-400' :
                               getSpendingPercentage() < 75 ? 'text-yellow-400' :
@@ -553,6 +609,11 @@ export default function Home() {
                               }}></div>
                             </motion.div>
                           </div>
+                          <p className="text-xs text-gray-400 text-center">
+                            {getSpendingPercentage() < 50 ? '✅ Great! Living below your means' :
+                             getSpendingPercentage() < 75 ? '⚠️ Watch your spending carefully' :
+                             '🚨 Budget alert! Time to cut expenses'}
+                          </p>
                         </div>
                       )}
 
@@ -566,7 +627,7 @@ export default function Home() {
                       >
                         <span className="relative z-10 flex items-center justify-center gap-2 text-black">
                           <Trophy className="w-5 h-5" />
-                          Calculate
+                          Calculate Savings
                         </span>
                       </Button>
 
@@ -582,7 +643,10 @@ export default function Home() {
                             <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-cyan-400 rounded-2xl blur opacity-75"></div>
                             <div className="relative bg-black border-2 border-green-400 rounded-2xl p-4 overflow-hidden">
                               <div className="relative">
-                                <p className="text-green-400 font-bold uppercase text-xs mb-2">💎 Monthly Savings</p>
+                                <p className="text-green-400 font-bold uppercase text-xs mb-2 flex items-center gap-1">
+                                  <Sparkles className="w-3 h-3" />
+                                  Monthly Savings Power
+                                </p>
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
@@ -597,11 +661,17 @@ export default function Home() {
                                 </motion.div>
                                 {balance > 50 && (
                                   <div className="text-center mt-2">
-                                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold">
-                                      <Award className="w-3 h-3" />
+                                    <div className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold mb-2">
+                                      <Trophy className="w-3 h-3" />
                                       MISSION 1 COMPLETE!
-                                    </span>
+                                    </div>
+                                    <p className="text-green-300 text-xs">🎉 You're ready for your study abroad adventure!</p>
                                   </div>
+                                )}
+                                {balance > 0 && balance <= 50 && (
+                                  <p className="text-center text-yellow-400 text-xs mt-2">
+                                    💪 Save €{(51 - balance).toFixed(2)} more to unlock your first NFT badge!
+                                  </p>
                                 )}
                               </div>
                             </div>
@@ -625,41 +695,50 @@ export default function Home() {
                     <CardHeader className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b-2 border-purple-500">
                       <CardTitle className="flex items-center gap-3 text-purple-400 text-lg md:text-xl font-black uppercase tracking-wider">
                         <div className="p-2 bg-purple-500/20 rounded-lg">
-                          <Globe className="w-5 h-5" />
+                          <Globe className="w-5 h-5" style={{ animation: 'float 3s ease-in-out infinite' }} />
                         </div>
-                        Currency Converter
+                        World Currency
                         <div className="ml-auto text-xs bg-purple-500/30 px-2 py-1 rounded-full border border-purple-500">
-                          LVL 2
+                          ✈️ MISSION 2
                         </div>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 md:p-6 space-y-4">
+                      <div className="text-center mb-2">
+                        <p className="text-xs text-gray-400">🌍 Convert between 8 study destinations</p>
+                      </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-purple-400 font-bold uppercase text-xs mb-2 block">From</Label>
+                          <Label className="text-purple-400 font-bold uppercase text-xs mb-2 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            From {CURRENCY_RATES[fromCurrency]?.flag}
+                          </Label>
                           <Select value={fromCurrency} onValueChange={setFromCurrency}>
-                            <SelectTrigger className="bg-black/50 border-2 border-purple-500/50 text-purple-300 font-bold">
+                            <SelectTrigger className="bg-black/50 border-2 border-purple-500/50 text-purple-300 font-bold h-12">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               {Object.entries(CURRENCY_RATES).map(([code, data]) => (
                                 <SelectItem key={code} value={code}>
-                                  {data.symbol} {code}
+                                  {data.flag} {code} - {data.country}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label className="text-pink-400 font-bold uppercase text-xs mb-2 block">To</Label>
+                          <Label className="text-pink-400 font-bold uppercase text-xs mb-2 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            To {CURRENCY_RATES[toCurrency]?.flag}
+                          </Label>
                           <Select value={toCurrency} onValueChange={setToCurrency}>
-                            <SelectTrigger className="bg-black/50 border-2 border-pink-500/50 text-pink-300 font-bold">
+                            <SelectTrigger className="bg-black/50 border-2 border-pink-500/50 text-pink-300 font-bold h-12">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               {Object.entries(CURRENCY_RATES).map(([code, data]) => (
                                 <SelectItem key={code} value={code}>
-                                  {data.symbol} {code}
+                                  {data.flag} {code} - {data.country}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -669,7 +748,7 @@ export default function Home() {
                       
                       <Input
                         type="number"
-                        placeholder="Enter amount"
+                        placeholder="Enter amount to convert"
                         value={convertAmount}
                         onChange={(e) => setConvertAmount(e.target.value)}
                         className="bg-black/50 border-2 border-purple-500/50 text-purple-300 text-lg font-bold rounded-xl h-12"
@@ -682,8 +761,8 @@ export default function Home() {
                           background: 'linear-gradient(45deg, #a855f7, #ec4899)'
                         }}
                       >
-                        <Globe className="w-4 h-4 mr-2" />
-                        Convert
+                        <Plane className="w-4 h-4 mr-2" />
+                        Convert Currency
                       </Button>
 
                       {convertedAmount !== null && (
@@ -692,16 +771,25 @@ export default function Home() {
                           animate={{ opacity: 1, y: 0 }}
                           className="bg-purple-500/10 border-2 border-purple-500 rounded-xl p-4 text-center"
                         >
+                          <div className="flex items-center justify-center gap-2 mb-2 text-3xl">
+                            <span>{CURRENCY_RATES[fromCurrency]?.flag}</span>
+                            <span className="text-purple-400">→</span>
+                            <span>{CURRENCY_RATES[toCurrency]?.flag}</span>
+                          </div>
                           <p className="text-purple-400 text-xs font-bold mb-1">CONVERTED AMOUNT</p>
                           <p className="text-3xl font-black text-pink-400">
                             {CURRENCY_RATES[toCurrency].symbol}{convertedAmount.toFixed(2)}
                           </p>
+                          <p className="text-xs text-gray-400 mt-2">
+                            {CURRENCY_RATES[fromCurrency].symbol}{convertAmount} {fromCurrency} = {CURRENCY_RATES[toCurrency].symbol}{convertedAmount.toFixed(2)} {toCurrency}
+                          </p>
                           {converterUsed && (
-                            <div className="mt-2">
+                            <div className="mt-3">
                               <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold">
-                                <Award className="w-3 h-3" />
+                                <Globe className="w-3 h-3" />
                                 MISSION 2 COMPLETE!
                               </span>
+                              <p className="text-green-300 text-xs mt-2">🌍 You're a global financial explorer!</p>
                             </div>
                           )}
                         </motion.div>
@@ -728,13 +816,16 @@ export default function Home() {
                         <div className="p-2 bg-pink-500/20 rounded-lg">
                           <Target className="w-5 h-5" />
                         </div>
-                        Monthly Goals
+                        Study Abroad Goals
                         <div className="ml-auto text-xs bg-pink-500/30 px-2 py-1 rounded-full border border-pink-500">
-                          LVL 3
+                          🎯 MISSION 3
                         </div>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 md:p-6 space-y-4">
+                      <p className="text-xs text-gray-400 text-center mb-2">
+                        📚 Set your financial goals for success abroad
+                      </p>
                       {goals.map((goal, index) => (
                         <div key={index}>
                           <Label className="text-orange-400 font-bold uppercase text-xs mb-2 flex items-center gap-2">
@@ -742,7 +833,7 @@ export default function Home() {
                             Goal {index + 1}
                           </Label>
                           <Input
-                            placeholder={`e.g., ${['Save €100 for emergency', 'Reduce food expenses by 20%', 'Find part-time job'][index]}`}
+                            placeholder={`e.g., ${['Save €100 for emergency fund', 'Cut food costs by 20%', 'Find part-time campus job'][index]}`}
                             value={goal}
                             onChange={(e) => {
                               const newGoals = [...goals];
@@ -764,7 +855,7 @@ export default function Home() {
                           }}
                         >
                           <Target className="w-4 h-4 mr-2" />
-                          Set Goals
+                          Lock In Goals
                         </Button>
                       ) : (
                         <motion.div
@@ -772,12 +863,13 @@ export default function Home() {
                           animate={{ opacity: 1, scale: 1 }}
                           className="bg-pink-500/10 border-2 border-pink-500 rounded-xl p-4 text-center"
                         >
-                          <p className="text-2xl mb-2">🎯</p>
-                          <p className="text-pink-400 font-bold uppercase text-sm mb-2">Goals Locked In!</p>
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold">
+                          <p className="text-4xl mb-2">🎯</p>
+                          <p className="text-pink-400 font-bold uppercase text-sm mb-2">Goals Activated!</p>
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold mb-2">
                             <Award className="w-3 h-3" />
                             MISSION 3 COMPLETE!
                           </span>
+                          <p className="text-green-300 text-xs mt-2">📈 You're a financial planning master!</p>
                         </motion.div>
                       )}
                     </CardContent>
@@ -799,7 +891,10 @@ export default function Home() {
                         <div className="p-2 bg-yellow-500/20 rounded-lg">
                           <Wallet className="w-5 h-5" />
                         </div>
-                        XRP Wallet
+                        NFT Passport
+                        <div className="ml-auto text-xs bg-yellow-500/30 px-2 py-1 rounded-full border border-yellow-500">
+                          💎 XRP
+                        </div>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 md:p-6">
@@ -808,14 +903,15 @@ export default function Home() {
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                            className="w-20 h-20 mx-auto bg-gradient-to-br from-yellow-500 to-green-500 rounded-full flex items-center justify-center"
+                            className="w-20 h-20 mx-auto bg-gradient-to-br from-yellow-500 to-green-500 rounded-full flex items-center justify-center border-4 border-dashed border-yellow-300"
                           >
-                            <Wallet className="w-10 h-10 text-white" />
+                            <Passport className="w-10 h-10 text-white" />
                           </motion.div>
                           
                           <div>
-                            <p className="text-yellow-400 font-bold text-base mb-2">⚡ INITIALIZE WALLET</p>
-                            <p className="text-gray-400 text-sm">Complete missions above, then generate wallet to mint NFTs</p>
+                            <p className="text-yellow-400 font-bold text-base mb-2">🌟 DIGITAL PASSPORT</p>
+                            <p className="text-gray-400 text-sm">Generate your crypto wallet to collect achievement NFTs</p>
+                            <p className="text-xs text-gray-500 mt-2">✅ Complete missions above first</p>
                           </div>
 
                           <Button
@@ -835,12 +931,13 @@ export default function Home() {
                                 >
                                   <Zap className="w-5 h-5" />
                                 </motion.div>
-                                Generating...
+                                Creating Wallet...
                               </>
                             ) : (
                               <>
-                                <Wallet className="w-5 h-5 mr-2" />
-                                Generate Wallet
+                                <Passport className="w-5 h-5 mr-2" />
+                                Create Digital Passport
+                                <Sparkles className="w-5 h-5 ml-2" />
                               </>
                             )}
                           </Button>
@@ -848,29 +945,36 @@ export default function Home() {
                       ) : (
                         <div className="space-y-4">
                           <div className="bg-black/90 border-2 border-green-400 rounded-xl p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-green-400 font-bold text-xs uppercase">🔐 Wallet Active</span>
-                              <span className="text-green-400 text-xs font-bold">● CONNECTED</span>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-green-400 font-bold text-xs uppercase flex items-center gap-1">
+                                <Passport className="w-3 h-3" />
+                                Passport Active
+                              </span>
+                              <span className="text-green-400 text-xs font-bold flex items-center gap-1">
+                                ● VERIFIED
+                              </span>
                             </div>
-                            <div className="bg-black/50 p-2 rounded-lg border border-green-500/30 mb-3">
+                            <div className="bg-black/50 p-3 rounded-lg border border-green-500/30 mb-3">
+                              <p className="text-xs text-gray-400 mb-1">Wallet Address</p>
                               <p className="text-green-300 font-mono text-xs break-all">{walletAddress}</p>
                             </div>
-                            <div className="bg-black/50 p-2 rounded-lg border border-yellow-500/30">
+                            <div className="bg-black/50 p-3 rounded-lg border border-yellow-500/30">
+                              <p className="text-xs text-gray-400 mb-1">🔑 Secret Key (Save Safely!)</p>
                               <p className="text-yellow-300 font-mono text-xs break-all">{walletSeed}</p>
                             </div>
                           </div>
 
-                          {/* NFT Collection */}
+                          {/* NFT Badge Collection */}
                           <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500 rounded-xl p-4">
                             <h3 className="text-purple-400 font-black uppercase text-sm mb-3 flex items-center gap-2">
                               <Award className="w-4 h-4" />
-                              Your NFT Collection
+                              Study Abroad Badge Collection
                             </h3>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-3 gap-3">
                               {missions.map((mission) => (
                                 <div
                                   key={mission.id}
-                                  className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center p-2 ${
+                                  className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center p-3 ${
                                     mintedNFTs[mission.nftType]
                                       ? `border-${mission.color}-400 bg-${mission.color}-500/20`
                                       : 'border-gray-700 bg-gray-900/50'
@@ -878,15 +982,20 @@ export default function Home() {
                                 >
                                   {mintedNFTs[mission.nftType] ? (
                                     <>
-                                      <Award className={`w-6 h-6 text-${mission.color}-400 mb-1`} />
-                                      <span className={`text-${mission.color}-400 text-xs font-bold text-center`}>
+                                      <motion.div
+                                        animate={{ rotate: [0, 10, -10, 0] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                      >
+                                        <Award className={`w-8 h-8 text-${mission.color}-400 mb-1`} />
+                                      </motion.div>
+                                      <span className={`text-${mission.color}-400 text-xs font-bold text-center leading-tight`}>
                                         {mission.title}
                                       </span>
                                     </>
                                   ) : (
                                     <>
-                                      <Lock className="w-6 h-6 text-gray-600 mb-1" />
-                                      <span className="text-gray-600 text-xs font-bold text-center">
+                                      <Lock className="w-8 h-8 text-gray-600 mb-1" />
+                                      <span className="text-gray-600 text-xs font-bold text-center leading-tight">
                                         Locked
                                       </span>
                                     </>
@@ -894,9 +1003,23 @@ export default function Home() {
                                 </div>
                               ))}
                             </div>
-                            <p className="text-center text-gray-400 text-xs mt-3">
-                              {Object.values(mintedNFTs).filter(Boolean).length}/3 NFTs Collected
-                            </p>
+                            <div className="mt-4 text-center">
+                              <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 border border-purple-500 rounded-full">
+                                <Trophy className="w-4 h-4 text-purple-400" />
+                                <span className="text-purple-400 text-sm font-bold">
+                                  {Object.values(mintedNFTs).filter(Boolean).length}/3 Badges Collected
+                                </span>
+                              </div>
+                              {Object.values(mintedNFTs).filter(Boolean).length === 3 && (
+                                <motion.p
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="text-yellow-400 text-sm font-bold mt-3"
+                                >
+                                  🎉 FULL SET! You're a Study Abroad Master!
+                                </motion.p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}
@@ -907,15 +1030,35 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Retro Footer */}
+          {/* Footer with Study Abroad Tips */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
-            className="mt-8 text-center space-y-2"
+            className="mt-8 space-y-4"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full">
-              <span className="text-cyan-400 text-xs font-bold">🎮 XRP LEDGER TESTNET • NO REAL VALUE</span>
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full mb-2">
+                <span className="text-cyan-400 text-xs font-bold">🎮 XRP LEDGER TESTNET • NO REAL VALUE • EDUCATIONAL USE ONLY</span>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl p-4">
+              <p className="text-center text-sm font-bold text-purple-400 mb-2">💡 Study Abroad Financial Tips</p>
+              <div className="grid md:grid-cols-3 gap-3 text-xs text-gray-400">
+                <div className="text-center">
+                  <p className="text-cyan-400 font-bold">🏦 Open Local Bank Account</p>
+                  <p>Save on international fees</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-purple-400 font-bold">📱 Use Budgeting Apps</p>
+                  <p>Track spending in real-time</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-pink-400 font-bold">🍜 Cook at Home</p>
+                  <p>Save 50%+ on food costs</p>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
