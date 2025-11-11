@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins, Globe, Target, CheckCircle2, Lock, Plane, Map, MapPin, Passport, GraduationCap, Briefcase } from "lucide-react";
+import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins, Globe, Target, CheckCircle2, Lock, Plane, Map, MapPin, GraduationCap, Briefcase, BadgeCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -906,7 +906,7 @@ export default function Home() {
                             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                             className="w-20 h-20 mx-auto bg-gradient-to-br from-yellow-500 to-green-500 rounded-full flex items-center justify-center border-4 border-dashed border-yellow-300"
                           >
-                            <Passport className="w-10 h-10 text-white" />
+                            <BadgeCheck className="w-10 h-10 text-white" />
                           </motion.div>
                           
                           <div>
@@ -936,7 +936,7 @@ export default function Home() {
                               </>
                             ) : (
                               <>
-                                <Passport className="w-5 h-5 mr-2" />
+                                <BadgeCheck className="w-5 h-5 mr-2" />
                                 Create Digital Passport
                                 <Sparkles className="w-5 h-5 ml-2" />
                               </>
@@ -948,7 +948,7 @@ export default function Home() {
                           <div className="bg-black/90 border-2 border-green-400 rounded-xl p-4">
                             <div className="flex items-center justify-between mb-3">
                               <span className="text-green-400 font-bold text-xs uppercase flex items-center gap-1">
-                                <Passport className="w-3 h-3" />
+                                <BadgeCheck className="w-3 h-3" />
                                 Passport Active
                               </span>
                               <span className="text-green-400 text-xs font-bold flex items-center gap-1">
