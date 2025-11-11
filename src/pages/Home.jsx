@@ -4,18 +4,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins } from "lucide-react";
+import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins, Globe, Target, CheckCircle2, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const CURRENCY_RATES = {
+  EUR: { symbol: '€', rate: 1, name: 'Euro' },
+  USD: { symbol: '$', rate: 1.09, name: 'US Dollar' },
+  GBP: { symbol: '£', rate: 0.86, name: 'British Pound' },
+  INR: { symbol: '₹', rate: 90.5, name: 'Indian Rupee' },
+  CNY: { symbol: '¥', rate: 7.85, name: 'Chinese Yuan' },
+  JPY: { symbol: '¥', rate: 161.2, name: 'Japanese Yen' },
+  BRL: { symbol: 'R$', rate: 5.42, name: 'Brazilian Real' },
+  NGN: { symbol: '₦', rate: 870, name: 'Nigerian Naira' }
+};
 
 export default function Home() {
   const [income, setIncome] = useState('');
   const [expenses, setExpenses] = useState('');
   const [balance, setBalance] = useState(null);
+  
+  // Currency converter
+  const [fromCurrency, setFromCurrency] = useState('EUR');
+  const [toCurrency, setToCurrency] = useState('USD');
+  const [convertAmount, setConvertAmount] = useState('');
+  const [convertedAmount, setConvertedAmount] = useState(null);
+  const [converterUsed, setConverterUsed] = useState(false);
+  
+  // Goals
+  const [goals, setGoals] = useState(['', '', '']);
+  const [goalsSet, setGoalsSet] = useState(false);
+  
+  // Wallet & NFT
   const [walletAddress, setWalletAddress] = useState(null);
   const [walletSeed, setWalletSeed] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isMinting, setIsMinting] = useState(false);
-  const [nftMinted, setNftMinted] = useState(false);
+  const [mintedNFTs, setMintedNFTs] = useState({
+    smartSaver: false,
+    explorer: false,
+    planner: false
+  });
+  const [currentlyMinting, setCurrentlyMinting] = useState(null);
+  
   const [error, setError] = useState(null);
   const [xrplLoaded, setXrplLoaded] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -52,6 +82,27 @@ export default function Home() {
     }
   };
 
+  const convertCurrency = () => {
+    const amount = parseFloat(convertAmount) || 0;
+    const fromRate = CURRENCY_RATES[fromCurrency].rate;
+    const toRate = CURRENCY_RATES[toCurrency].rate;
+    const result = (amount / fromRate) * toRate;
+    setConvertedAmount(result);
+    setConverterUsed(true);
+    setError(null);
+  };
+
+  const handleSetGoals = () => {
+    const filledGoals = goals.filter(g => g.trim() !== '');
+    if (filledGoals.length >= 3) {
+      setGoalsSet(true);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+    } else {
+      setError('Please set all 3 monthly goals to complete this mission!');
+    }
+  };
+
   const generateWallet = async () => {
     if (!xrplLoaded || !window.xrpl) {
       setError('XRP Ledger library not loaded yet. Please wait...');
@@ -71,7 +122,7 @@ export default function Home() {
     }
   };
 
-  const mintNFT = async () => {
+  const mintNFT = async (nftType) => {
     if (!xrplLoaded || !window.xrpl) {
       setError('XRP Ledger library not loaded yet');
       return;
@@ -83,23 +134,48 @@ export default function Home() {
     }
 
     try {
-      setIsMinting(true);
+      setCurrentlyMinting(nftType);
       setError(null);
 
       const client = new window.xrpl.Client('wss://s.altnet.rippletest.net:51233');
       await client.connect();
 
       const wallet = window.xrpl.Wallet.fromSeed(walletSeed);
-      await client.fundWallet(wallet);
+      
+      // Fund wallet if needed
+      try {
+        await client.fundWallet(wallet);
+      } catch (e) {
+        // Wallet might already be funded
+        console.log('Wallet funding skipped or already funded');
+      }
+
+      const nftData = {
+        smartSaver: {
+          name: '🏆 Smart Saver NFT',
+          description: `Achievement Unlocked: Saved €${balance?.toFixed(2) || '50+'} in monthly budget`,
+          level: 'LEVEL 1'
+        },
+        explorer: {
+          name: '🌍 Explorer NFT',
+          description: 'Achievement Unlocked: Mastered international currency conversion',
+          level: 'LEVEL 2'
+        },
+        planner: {
+          name: '🎯 Planner NFT',
+          description: 'Achievement Unlocked: Set strategic financial goals',
+          level: 'LEVEL 3'
+        }
+      };
 
       const nftMintTx = {
         TransactionType: 'NFTokenMint',
         Account: wallet.address,
         URI: window.xrpl.convertStringToHex(
           JSON.stringify({
-            name: 'Smart Saver NFT',
-            description: `Earned by saving €${balance.toFixed(2)}`,
-            image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400'
+            ...nftData[nftType],
+            image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
+            mintedAt: new Date().toISOString()
           })
         ),
         Flags: 8,
@@ -112,7 +188,7 @@ export default function Home() {
       const result = await client.submitAndWait(signed.tx_blob);
 
       if (result.result.meta.TransactionResult === 'tesSUCCESS') {
-        setNftMinted(true);
+        setMintedNFTs(prev => ({ ...prev, [nftType]: true }));
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 5000);
       } else {
@@ -124,11 +200,50 @@ export default function Home() {
       setError('NFT minting error: ' + err.message);
       console.error(err);
     } finally {
-      setIsMinting(false);
+      setCurrentlyMinting(null);
     }
   };
 
-  const canMintNFT = balance !== null && balance > 50 && walletAddress && !nftMinted;
+  const getSpendingPercentage = () => {
+    if (!income || !expenses) return 0;
+    return Math.min((parseFloat(expenses) / parseFloat(income)) * 100, 100);
+  };
+
+  const getProgressColor = (percentage) => {
+    if (percentage < 50) return 'from-green-400 to-cyan-400';
+    if (percentage < 75) return 'from-yellow-400 to-orange-400';
+    return 'from-red-400 to-pink-400';
+  };
+
+  const missions = [
+    {
+      id: 'smartSaver',
+      title: 'Smart Saver',
+      description: 'Save at least €50',
+      completed: balance !== null && balance > 50,
+      icon: Trophy,
+      color: 'cyan',
+      nftType: 'smartSaver'
+    },
+    {
+      id: 'explorer',
+      title: 'Explorer',
+      description: 'Use the currency converter',
+      completed: converterUsed,
+      icon: Globe,
+      color: 'purple',
+      nftType: 'explorer'
+    },
+    {
+      id: 'planner',
+      title: 'Planner',
+      description: 'Set 3 monthly goals',
+      completed: goalsSet,
+      icon: Target,
+      color: 'pink',
+      nftType: 'planner'
+    }
+  ];
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-black">
@@ -151,8 +266,8 @@ export default function Home() {
             key={i}
             className="absolute w-1 h-1 bg-cyan-400 rounded-full"
             initial={{ 
-              x: Math.random() * window.innerWidth, 
-              y: Math.random() * window.innerHeight,
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000), 
+              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
               opacity: 0.3
             }}
             animate={{
@@ -181,7 +296,7 @@ export default function Home() {
               }}
               initial={{ y: 0, rotate: 0, opacity: 1 }}
               animate={{ 
-                y: window.innerHeight + 100, 
+                y: (typeof window !== 'undefined' ? window.innerHeight : 1000) + 100, 
                 rotate: 360,
                 opacity: 0
               }}
@@ -209,30 +324,30 @@ export default function Home() {
       `}</style>
 
       <div className="relative z-10 p-4 md:p-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Retro Header */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center mb-8 md:mb-12"
+            className="text-center mb-8"
           >
             <motion.div 
-              className="inline-block mb-6"
+              className="inline-block mb-4"
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
               <div className="relative">
                 <div className="absolute inset-0 bg-cyan-500 blur-xl opacity-50"></div>
                 <div className="relative bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 p-1 rounded-2xl">
-                  <div className="bg-black p-4 rounded-xl">
-                    <Zap className="w-12 h-12 text-cyan-400" />
+                  <div className="bg-black p-3 rounded-xl">
+                    <Zap className="w-10 h-10 text-cyan-400" />
                   </div>
                 </div>
               </div>
             </motion.div>
             
             <motion.h1 
-              className="text-5xl md:text-7xl font-black mb-3 tracking-wider"
+              className="text-4xl md:text-6xl font-black mb-2 tracking-wider"
               style={{
                 fontFamily: 'Arial Black, sans-serif',
                 background: 'linear-gradient(45deg, #00ffff, #ff00ff, #ffff00)',
@@ -244,18 +359,21 @@ export default function Home() {
               CAMPUS<span className="text-pink-500">Fi</span>
             </motion.h1>
             
-            <div className="flex items-center justify-center gap-2 text-cyan-400 text-sm md:text-base font-bold tracking-widest">
+            <div className="flex items-center justify-center gap-2 text-cyan-400 text-xs md:text-sm font-bold tracking-widest mb-3">
               <Star className="w-4 h-4" />
-              <span className="uppercase">Level Up Your Savings</span>
+              <span className="uppercase">International Student Edition</span>
               <Star className="w-4 h-4" />
             </div>
 
-            <div className="mt-4 flex justify-center gap-4">
-              <div className="px-4 py-1 bg-cyan-500/20 border border-cyan-500 rounded-full">
-                <span className="text-cyan-400 text-xs font-bold">🎮 WEB3 GAMING</span>
+            <div className="flex flex-wrap justify-center gap-2">
+              <div className="px-3 py-1 bg-cyan-500/20 border border-cyan-500 rounded-full">
+                <span className="text-cyan-400 text-xs font-bold">🌍 GLOBAL</span>
               </div>
-              <div className="px-4 py-1 bg-pink-500/20 border border-pink-500 rounded-full">
-                <span className="text-pink-400 text-xs font-bold">⚡ XRP LEDGER</span>
+              <div className="px-3 py-1 bg-purple-500/20 border border-purple-500 rounded-full">
+                <span className="text-purple-400 text-xs font-bold">🎮 GAMIFIED</span>
+              </div>
+              <div className="px-3 py-1 bg-pink-500/20 border border-pink-500 rounded-full">
+                <span className="text-pink-400 text-xs font-bold">⚡ XRP NFT</span>
               </div>
             </div>
           </motion.div>
@@ -276,347 +394,529 @@ export default function Home() {
             )}
           </AnimatePresence>
 
-          {/* Budget Calculator Card */}
+          {/* Mission Progress Dashboard */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
             <div className="relative">
-              {/* Glowing border effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-75 animate-pulse"></div>
-              
-              <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-cyan-500 shadow-2xl overflow-hidden" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
-                {/* Scanline effect */}
-                <div className="absolute inset-0 pointer-events-none opacity-10" style={{
-                  backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.5) 2px, rgba(0, 255, 255, 0.5) 4px)'
-                }}></div>
-
-                <CardHeader className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-b-2 border-cyan-500">
-                  <CardTitle className="flex items-center gap-3 text-cyan-400 text-xl md:text-2xl font-black uppercase tracking-wider">
-                    <div className="p-2 bg-cyan-500/20 rounded-lg">
-                      <Coins className="w-6 h-6" />
-                    </div>
-                    Budget Calculator
-                    <div className="ml-auto text-xs bg-pink-500/30 px-3 py-1 rounded-full border border-pink-500">
-                      MISSION 1
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                
-                <CardContent className="p-6 space-y-5">
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <Label className="text-cyan-400 font-bold uppercase text-xs tracking-wider mb-2 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" />
-                        Income Credits (€)
-                      </Label>
-                      <Input
-                        type="number"
-                        placeholder="1000"
-                        value={income}
-                        onChange={(e) => setIncome(e.target.value)}
-                        className="bg-black/50 border-2 border-cyan-500/50 focus:border-cyan-400 text-cyan-300 text-lg font-bold placeholder:text-cyan-800 rounded-xl h-14"
-                      />
-                      <div className="absolute right-3 top-[38px] text-cyan-500 font-black">€</div>
-                    </div>
-
-                    <div className="relative">
-                      <Label className="text-pink-400 font-bold uppercase text-xs tracking-wider mb-2 flex items-center gap-2">
-                        <Zap className="w-4 h-4" />
-                        Expense Drain (€)
-                      </Label>
-                      <Input
-                        type="number"
-                        placeholder="800"
-                        value={expenses}
-                        onChange={(e) => setExpenses(e.target.value)}
-                        className="bg-black/50 border-2 border-pink-500/50 focus:border-pink-400 text-pink-300 text-lg font-bold placeholder:text-pink-800 rounded-xl h-14"
-                      />
-                      <div className="absolute right-3 top-[38px] text-pink-500 font-black">€</div>
-                    </div>
-                  </div>
-
-                  <Button 
-                    onClick={calculateBalance}
-                    className="w-full h-14 text-lg font-black uppercase tracking-wider relative overflow-hidden group"
-                    style={{
-                      background: 'linear-gradient(45deg, #00ffff, #ff00ff)',
-                      border: 'none'
-                    }}
-                  >
-                    <span className="relative z-10 flex items-center justify-center gap-2 text-black">
-                      <Trophy className="w-5 h-5" />
-                      Calculate Score
-                      <Trophy className="w-5 h-5" />
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </Button>
-
-                  {/* Balance Result */}
-                  <AnimatePresence>
-                    {balance !== null && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="relative mt-6"
-                      >
-                        <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-cyan-400 rounded-2xl blur opacity-75"></div>
-                        <div className="relative bg-black border-2 border-green-400 rounded-2xl p-6 overflow-hidden">
-                          {/* Animated background */}
-                          <div className="absolute inset-0 opacity-10" style={{
-                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 255, 0, 0.3) 10px, rgba(0, 255, 0, 0.3) 20px)'
-                          }}></div>
-
-                          <div className="relative">
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-green-400 font-bold uppercase text-xs tracking-wider">💎 Savings Power</span>
-                              <span className="text-green-400 font-bold text-xs">LVL {balance > 100 ? '3' : balance > 50 ? '2' : '1'}</span>
-                            </div>
-                            
-                            <div className="text-center mb-4">
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className={`text-6xl font-black ${balance > 0 ? 'text-green-400' : 'text-red-400'}`}
-                                style={{
-                                  textShadow: balance > 0 
-                                    ? '0 0 20px rgba(0, 255, 0, 0.8), 0 0 40px rgba(0, 255, 0, 0.5)'
-                                    : '0 0 20px rgba(255, 0, 0, 0.8)'
-                                }}
-                              >
-                                €{Math.abs(balance).toFixed(2)}
-                              </motion.div>
-                              {balance < 0 && (
-                                <div className="text-red-400 font-bold mt-2">⚠️ DEFICIT MODE</div>
-                              )}
-                            </div>
-
-                            {/* Progress Bar */}
-                            <div className="relative h-8 bg-black/50 rounded-full overflow-hidden border-2 border-green-500/50 mb-3">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${Math.min((balance / 100) * 100, 100)}%` }}
-                                className="h-full bg-gradient-to-r from-green-400 to-cyan-400 relative"
-                                style={{
-                                  boxShadow: '0 0 20px rgba(0, 255, 0, 0.8)'
-                                }}
-                              >
-                                <div className="absolute inset-0 opacity-30" style={{
-                                  backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(255, 255, 255, 0.5) 5px, rgba(255, 255, 255, 0.5) 10px)'
-                                }}></div>
-                              </motion.div>
-                              <div className="absolute inset-0 flex items-center justify-center text-white font-black text-xs">
-                                {Math.min(balance, 100).toFixed(0)}%
-                              </div>
-                            </div>
-
-                            {balance > 50 && (
-                              <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-center"
-                              >
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full text-black font-black text-sm">
-                                  <Award className="w-4 h-4" />
-                                  NFT BADGE UNLOCKED!
-                                  <Sparkles className="w-4 h-4" />
-                                </div>
-                              </motion.div>
-                            )}
-                            {balance > 0 && balance <= 50 && (
-                              <div className="text-center text-cyan-400 text-sm font-bold">
-                                💪 Save €{(51 - balance).toFixed(2)} more to unlock NFT!
-                              </div>
-                            )}
-                          </div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-2xl blur opacity-50"></div>
+              <div className="relative bg-black/90 backdrop-blur-xl border-2 border-yellow-500 rounded-2xl p-4 md:p-6">
+                <h2 className="text-yellow-400 font-black text-xl md:text-2xl uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <Trophy className="w-6 h-6" />
+                  Mission Control
+                </h2>
+                <div className="grid md:grid-cols-3 gap-4">
+                  {missions.map((mission, index) => (
+                    <motion.div
+                      key={mission.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={`relative border-2 rounded-xl p-4 ${
+                        mission.completed 
+                          ? `border-${mission.color}-400 bg-${mission.color}-500/10` 
+                          : 'border-gray-600 bg-gray-900/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className={`p-2 rounded-lg ${
+                          mission.completed ? `bg-${mission.color}-500/20` : 'bg-gray-800'
+                        }`}>
+                          <mission.icon className={`w-5 h-5 ${
+                            mission.completed ? `text-${mission.color}-400` : 'text-gray-500'
+                          }`} />
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </CardContent>
-              </Card>
+                        {mission.completed ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-400" />
+                        ) : (
+                          <Lock className="w-5 h-5 text-gray-500" />
+                        )}
+                      </div>
+                      <h3 className={`font-black text-sm uppercase ${
+                        mission.completed ? `text-${mission.color}-400` : 'text-gray-500'
+                      }`}>
+                        Level {index + 1}: {mission.title}
+                      </h3>
+                      <p className="text-gray-400 text-xs mt-1">{mission.description}</p>
+                      {mission.completed && !mintedNFTs[mission.nftType] && walletAddress && (
+                        <Button
+                          onClick={() => mintNFT(mission.nftType)}
+                          disabled={currentlyMinting === mission.nftType}
+                          className="w-full mt-3 h-8 text-xs font-bold"
+                          style={{
+                            background: `linear-gradient(45deg, var(--${mission.color}-500), var(--${mission.color}-600))`
+                          }}
+                        >
+                          {currentlyMinting === mission.nftType ? 'Minting...' : 'Mint NFT'}
+                        </Button>
+                      )}
+                      {mintedNFTs[mission.nftType] && (
+                        <div className="mt-3 text-center">
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-500/20 border border-green-500 rounded-full text-green-400 text-xs font-bold">
+                            <Award className="w-3 h-3" />
+                            NFT CLAIMED
+                          </span>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
 
-          {/* Wallet & NFT Section */}
-          <AnimatePresence>
-            {balance !== null && balance > 50 && (
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Budget Calculator Card */}
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
               >
                 <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 rounded-2xl blur opacity-75 animate-pulse"></div>
+                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-75 animate-pulse"></div>
                   
-                  <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-purple-500 overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b-2 border-purple-500">
-                      <CardTitle className="flex items-center gap-3 text-purple-400 text-xl md:text-2xl font-black uppercase tracking-wider">
-                        <div className="p-2 bg-purple-500/20 rounded-lg">
-                          <Award className="w-6 h-6" />
+                  <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-cyan-500 shadow-2xl overflow-hidden" style={{ animation: 'pulse-border 3s ease-in-out infinite' }}>
+                    <div className="absolute inset-0 pointer-events-none opacity-10" style={{
+                      backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.5) 2px, rgba(0, 255, 255, 0.5) 4px)'
+                    }}></div>
+
+                    <CardHeader className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-b-2 border-cyan-500">
+                      <CardTitle className="flex items-center gap-3 text-cyan-400 text-lg md:text-xl font-black uppercase tracking-wider">
+                        <div className="p-2 bg-cyan-500/20 rounded-lg">
+                          <Coins className="w-5 h-5" />
                         </div>
-                        NFT Mint Zone
-                        <div className="ml-auto text-xs bg-yellow-500/30 px-3 py-1 rounded-full border border-yellow-500 text-yellow-400">
-                          MISSION 2
+                        Budget Calculator
+                        <div className="ml-auto text-xs bg-cyan-500/30 px-2 py-1 rounded-full border border-cyan-500">
+                          LVL 1
                         </div>
                       </CardTitle>
                     </CardHeader>
                     
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 md:p-6 space-y-4">
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <Label className="text-cyan-400 font-bold uppercase text-xs tracking-wider mb-2 flex items-center gap-2">
+                            <TrendingUp className="w-3 h-3" />
+                            Monthly Income (€)
+                          </Label>
+                          <Input
+                            type="number"
+                            placeholder="1000"
+                            value={income}
+                            onChange={(e) => setIncome(e.target.value)}
+                            className="bg-black/50 border-2 border-cyan-500/50 focus:border-cyan-400 text-cyan-300 text-lg font-bold placeholder:text-cyan-800 rounded-xl h-12"
+                          />
+                        </div>
+
+                        <div className="relative">
+                          <Label className="text-pink-400 font-bold uppercase text-xs tracking-wider mb-2 flex items-center gap-2">
+                            <Zap className="w-3 h-3" />
+                            Monthly Expenses (€)
+                          </Label>
+                          <Input
+                            type="number"
+                            placeholder="800"
+                            value={expenses}
+                            onChange={(e) => setExpenses(e.target.value)}
+                            className="bg-black/50 border-2 border-pink-500/50 focus:border-pink-400 text-pink-300 text-lg font-bold placeholder:text-pink-800 rounded-xl h-12"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Spending Progress Bar */}
+                      {income && expenses && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs font-bold">
+                            <span className="text-gray-400">Budget Usage</span>
+                            <span className={`${
+                              getSpendingPercentage() < 50 ? 'text-green-400' :
+                              getSpendingPercentage() < 75 ? 'text-yellow-400' :
+                              'text-red-400'
+                            }`}>
+                              {getSpendingPercentage().toFixed(0)}%
+                            </span>
+                          </div>
+                          <div className="relative h-6 bg-black/50 rounded-full overflow-hidden border-2 border-gray-700">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${getSpendingPercentage()}%` }}
+                              className={`h-full bg-gradient-to-r ${getProgressColor(getSpendingPercentage())} relative`}
+                              style={{
+                                boxShadow: '0 0 20px rgba(0, 255, 0, 0.8)'
+                              }}
+                            >
+                              <div className="absolute inset-0 opacity-30" style={{
+                                backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 5px, rgba(255, 255, 255, 0.5) 5px, rgba(255, 255, 255, 0.5) 10px)'
+                              }}></div>
+                            </motion.div>
+                          </div>
+                        </div>
+                      )}
+
+                      <Button 
+                        onClick={calculateBalance}
+                        className="w-full h-12 text-base font-black uppercase tracking-wider relative overflow-hidden group"
+                        style={{
+                          background: 'linear-gradient(45deg, #00ffff, #ff00ff)',
+                          border: 'none'
+                        }}
+                      >
+                        <span className="relative z-10 flex items-center justify-center gap-2 text-black">
+                          <Trophy className="w-5 h-5" />
+                          Calculate
+                        </span>
+                      </Button>
+
+                      {/* Balance Result */}
+                      <AnimatePresence>
+                        {balance !== null && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="relative"
+                          >
+                            <div className="absolute -inset-1 bg-gradient-to-r from-green-400 to-cyan-400 rounded-2xl blur opacity-75"></div>
+                            <div className="relative bg-black border-2 border-green-400 rounded-2xl p-4 overflow-hidden">
+                              <div className="relative">
+                                <p className="text-green-400 font-bold uppercase text-xs mb-2">💎 Monthly Savings</p>
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className={`text-4xl font-black text-center ${balance > 0 ? 'text-green-400' : 'text-red-400'}`}
+                                  style={{
+                                    textShadow: balance > 0 
+                                      ? '0 0 20px rgba(0, 255, 0, 0.8)'
+                                      : '0 0 20px rgba(255, 0, 0, 0.8)'
+                                  }}
+                                >
+                                  €{Math.abs(balance).toFixed(2)}
+                                </motion.div>
+                                {balance > 50 && (
+                                  <div className="text-center mt-2">
+                                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold">
+                                      <Award className="w-3 h-3" />
+                                      MISSION 1 COMPLETE!
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </CardContent>
+                  </Card>
+                </div>
+              </motion.div>
+
+              {/* Currency Converter */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-75"></div>
+                  <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-purple-500 overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b-2 border-purple-500">
+                      <CardTitle className="flex items-center gap-3 text-purple-400 text-lg md:text-xl font-black uppercase tracking-wider">
+                        <div className="p-2 bg-purple-500/20 rounded-lg">
+                          <Globe className="w-5 h-5" />
+                        </div>
+                        Currency Converter
+                        <div className="ml-auto text-xs bg-purple-500/30 px-2 py-1 rounded-full border border-purple-500">
+                          LVL 2
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 md:p-6 space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-purple-400 font-bold uppercase text-xs mb-2 block">From</Label>
+                          <Select value={fromCurrency} onValueChange={setFromCurrency}>
+                            <SelectTrigger className="bg-black/50 border-2 border-purple-500/50 text-purple-300 font-bold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(CURRENCY_RATES).map(([code, data]) => (
+                                <SelectItem key={code} value={code}>
+                                  {data.symbol} {code}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-pink-400 font-bold uppercase text-xs mb-2 block">To</Label>
+                          <Select value={toCurrency} onValueChange={setToCurrency}>
+                            <SelectTrigger className="bg-black/50 border-2 border-pink-500/50 text-pink-300 font-bold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(CURRENCY_RATES).map(([code, data]) => (
+                                <SelectItem key={code} value={code}>
+                                  {data.symbol} {code}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      <Input
+                        type="number"
+                        placeholder="Enter amount"
+                        value={convertAmount}
+                        onChange={(e) => setConvertAmount(e.target.value)}
+                        className="bg-black/50 border-2 border-purple-500/50 text-purple-300 text-lg font-bold rounded-xl h-12"
+                      />
+
+                      <Button 
+                        onClick={convertCurrency}
+                        className="w-full h-12 text-base font-black uppercase"
+                        style={{
+                          background: 'linear-gradient(45deg, #a855f7, #ec4899)'
+                        }}
+                      >
+                        <Globe className="w-4 h-4 mr-2" />
+                        Convert
+                      </Button>
+
+                      {convertedAmount !== null && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-purple-500/10 border-2 border-purple-500 rounded-xl p-4 text-center"
+                        >
+                          <p className="text-purple-400 text-xs font-bold mb-1">CONVERTED AMOUNT</p>
+                          <p className="text-3xl font-black text-pink-400">
+                            {CURRENCY_RATES[toCurrency].symbol}{convertedAmount.toFixed(2)}
+                          </p>
+                          {converterUsed && (
+                            <div className="mt-2">
+                              <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold">
+                                <Award className="w-3 h-3" />
+                                MISSION 2 COMPLETE!
+                              </span>
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Monthly Goals */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl blur opacity-75"></div>
+                  <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-pink-500 overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-pink-500/20 to-orange-500/20 border-b-2 border-pink-500">
+                      <CardTitle className="flex items-center gap-3 text-pink-400 text-lg md:text-xl font-black uppercase tracking-wider">
+                        <div className="p-2 bg-pink-500/20 rounded-lg">
+                          <Target className="w-5 h-5" />
+                        </div>
+                        Monthly Goals
+                        <div className="ml-auto text-xs bg-pink-500/30 px-2 py-1 rounded-full border border-pink-500">
+                          LVL 3
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 md:p-6 space-y-4">
+                      {goals.map((goal, index) => (
+                        <div key={index}>
+                          <Label className="text-orange-400 font-bold uppercase text-xs mb-2 flex items-center gap-2">
+                            <Star className="w-3 h-3" />
+                            Goal {index + 1}
+                          </Label>
+                          <Input
+                            placeholder={`e.g., ${['Save €100 for emergency', 'Reduce food expenses by 20%', 'Find part-time job'][index]}`}
+                            value={goal}
+                            onChange={(e) => {
+                              const newGoals = [...goals];
+                              newGoals[index] = e.target.value;
+                              setGoals(newGoals);
+                            }}
+                            className="bg-black/50 border-2 border-orange-500/50 text-orange-300 font-bold rounded-xl h-12"
+                            disabled={goalsSet}
+                          />
+                        </div>
+                      ))}
+                      
+                      {!goalsSet ? (
+                        <Button 
+                          onClick={handleSetGoals}
+                          className="w-full h-12 text-base font-black uppercase"
+                          style={{
+                            background: 'linear-gradient(45deg, #ec4899, #f97316)'
+                          }}
+                        >
+                          <Target className="w-4 h-4 mr-2" />
+                          Set Goals
+                        </Button>
+                      ) : (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="bg-pink-500/10 border-2 border-pink-500 rounded-xl p-4 text-center"
+                        >
+                          <p className="text-2xl mb-2">🎯</p>
+                          <p className="text-pink-400 font-bold uppercase text-sm mb-2">Goals Locked In!</p>
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-400/20 border border-yellow-400 rounded-full text-yellow-400 text-xs font-bold">
+                            <Award className="w-3 h-3" />
+                            MISSION 3 COMPLETE!
+                          </span>
+                        </motion.div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </motion.div>
+
+              {/* Wallet & NFT Minting */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 to-green-500 rounded-2xl blur opacity-75 animate-pulse"></div>
+                  <Card className="relative bg-black/80 backdrop-blur-xl border-2 border-yellow-500 overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-yellow-500/20 to-green-500/20 border-b-2 border-yellow-500">
+                      <CardTitle className="flex items-center gap-3 text-yellow-400 text-lg md:text-xl font-black uppercase tracking-wider">
+                        <div className="p-2 bg-yellow-500/20 rounded-lg">
+                          <Wallet className="w-5 h-5" />
+                        </div>
+                        XRP Wallet
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 md:p-6">
                       {!walletAddress ? (
-                        <div className="text-center space-y-6">
+                        <div className="text-center space-y-4">
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                            className="w-24 h-24 mx-auto bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
+                            className="w-20 h-20 mx-auto bg-gradient-to-br from-yellow-500 to-green-500 rounded-full flex items-center justify-center"
                           >
-                            <Wallet className="w-12 h-12 text-white" />
+                            <Wallet className="w-10 h-10 text-white" />
                           </motion.div>
                           
                           <div>
-                            <p className="text-cyan-400 font-bold text-lg mb-2">⚡ INITIALIZE WALLET</p>
-                            <p className="text-gray-400 text-sm">Generate your testnet credentials</p>
+                            <p className="text-yellow-400 font-bold text-base mb-2">⚡ INITIALIZE WALLET</p>
+                            <p className="text-gray-400 text-sm">Complete missions above, then generate wallet to mint NFTs</p>
                           </div>
 
                           <Button
                             onClick={generateWallet}
                             disabled={isConnecting || !xrplLoaded}
-                            className="w-full h-14 text-lg font-black uppercase tracking-wider relative overflow-hidden group"
+                            className="w-full h-12 text-base font-black uppercase"
                             style={{
-                              background: 'linear-gradient(45deg, #a855f7, #ec4899)',
-                              border: 'none'
+                              background: 'linear-gradient(45deg, #eab308, #22c55e)'
                             }}
                           >
-                            <span className="relative z-10 flex items-center justify-center gap-2 text-white">
-                              {isConnecting ? (
-                                <>
-                                  <motion.div
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                  >
-                                    <Zap className="w-5 h-5" />
-                                  </motion.div>
-                                  Generating...
-                                </>
-                              ) : (
-                                <>
-                                  <Wallet className="w-5 h-5" />
-                                  Generate Wallet
-                                  <Sparkles className="w-5 h-5" />
-                                </>
-                              )}
-                            </span>
+                            {isConnecting ? (
+                              <>
+                                <motion.div
+                                  animate={{ rotate: 360 }}
+                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                  className="inline-block mr-2"
+                                >
+                                  <Zap className="w-5 h-5" />
+                                </motion.div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Wallet className="w-5 h-5 mr-2" />
+                                Generate Wallet
+                              </>
+                            )}
                           </Button>
                         </div>
                       ) : (
-                        <div className="space-y-5">
-                          {/* Wallet Display */}
-                          <div className="relative">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-xl blur opacity-50"></div>
-                            <div className="relative bg-black/90 border-2 border-cyan-400 rounded-xl p-4 space-y-3">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-cyan-400 font-bold text-xs uppercase tracking-wider">🔐 Wallet ID</span>
-                                <span className="text-green-400 text-xs font-bold">● ACTIVE</span>
-                              </div>
-                              <div className="bg-black/50 p-3 rounded-lg border border-cyan-500/30">
-                                <p className="text-cyan-300 font-mono text-xs break-all">{walletAddress}</p>
-                              </div>
-                              
-                              <div className="pt-2 border-t border-cyan-500/30">
-                                <span className="text-pink-400 font-bold text-xs uppercase tracking-wider">🔑 Secret Seed</span>
-                                <div className="bg-black/50 p-3 rounded-lg border border-pink-500/30 mt-2">
-                                  <p className="text-pink-300 font-mono text-xs break-all">{walletSeed}</p>
-                                </div>
-                                <p className="text-yellow-400 text-xs mt-2 font-bold">⚠️ Save this securely!</p>
-                              </div>
+                        <div className="space-y-4">
+                          <div className="bg-black/90 border-2 border-green-400 rounded-xl p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-green-400 font-bold text-xs uppercase">🔐 Wallet Active</span>
+                              <span className="text-green-400 text-xs font-bold">● CONNECTED</span>
+                            </div>
+                            <div className="bg-black/50 p-2 rounded-lg border border-green-500/30 mb-3">
+                              <p className="text-green-300 font-mono text-xs break-all">{walletAddress}</p>
+                            </div>
+                            <div className="bg-black/50 p-2 rounded-lg border border-yellow-500/30">
+                              <p className="text-yellow-300 font-mono text-xs break-all">{walletSeed}</p>
                             </div>
                           </div>
 
-                          {!nftMinted ? (
-                            <Button
-                              onClick={mintNFT}
-                              disabled={isMinting || !canMintNFT}
-                              className="w-full h-16 text-xl font-black uppercase tracking-wider relative overflow-hidden"
-                              style={{
-                                background: 'linear-gradient(45deg, #fbbf24, #f59e0b, #ef4444)',
-                                border: '2px solid #fbbf24'
-                              }}
-                            >
-                              {isMinting ? (
-                                <span className="relative z-10 flex items-center justify-center gap-3 text-black">
-                                  <motion.div
-                                    animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-                                    transition={{ duration: 1, repeat: Infinity }}
-                                  >
-                                    <Zap className="w-6 h-6" />
-                                  </motion.div>
-                                  Minting NFT...
-                                </span>
-                              ) : (
-                                <span className="relative z-10 flex items-center justify-center gap-3 text-black">
-                                  <Trophy className="w-6 h-6" />
-                                  MINT NFT BADGE
-                                  <Trophy className="w-6 h-6" />
-                                </span>
-                              )}
-                            </Button>
-                          ) : (
-                            <motion.div
-                              initial={{ scale: 0.5, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              className="relative"
-                            >
-                              <div className="absolute -inset-2 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 rounded-2xl blur-lg opacity-75 animate-pulse"></div>
-                              <div className="relative bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl p-8 text-center border-4 border-yellow-300">
-                                <motion.div
-                                  animate={{ 
-                                    rotate: [0, 10, -10, 0],
-                                    scale: [1, 1.1, 1]
-                                  }}
-                                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
-                                  className="text-8xl mb-4"
+                          {/* NFT Collection */}
+                          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500 rounded-xl p-4">
+                            <h3 className="text-purple-400 font-black uppercase text-sm mb-3 flex items-center gap-2">
+                              <Award className="w-4 h-4" />
+                              Your NFT Collection
+                            </h3>
+                            <div className="grid grid-cols-3 gap-2">
+                              {missions.map((mission) => (
+                                <div
+                                  key={mission.id}
+                                  className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center p-2 ${
+                                    mintedNFTs[mission.nftType]
+                                      ? `border-${mission.color}-400 bg-${mission.color}-500/20`
+                                      : 'border-gray-700 bg-gray-900/50'
+                                  }`}
                                 >
-                                  🏆
-                                </motion.div>
-                                <h3 className="text-3xl font-black text-black mb-2 uppercase">
-                                  Victory!
-                                </h3>
-                                <p className="text-black/80 font-bold text-lg mb-4">
-                                  Smart Saver NFT Minted
-                                </p>
-                                <div className="inline-flex items-center gap-2 px-6 py-3 bg-black rounded-full">
-                                  <Award className="w-5 h-5 text-yellow-400" />
-                                  <span className="font-black text-yellow-400 uppercase">Level Complete</span>
-                                  <Star className="w-5 h-5 text-yellow-400" />
+                                  {mintedNFTs[mission.nftType] ? (
+                                    <>
+                                      <Award className={`w-6 h-6 text-${mission.color}-400 mb-1`} />
+                                      <span className={`text-${mission.color}-400 text-xs font-bold text-center`}>
+                                        {mission.title}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Lock className="w-6 h-6 text-gray-600 mb-1" />
+                                      <span className="text-gray-600 text-xs font-bold text-center">
+                                        Locked
+                                      </span>
+                                    </>
+                                  )}
                                 </div>
-                                <div className="mt-4 text-sm text-black/70 font-bold">
-                                  🎮 Achievement Unlocked: Financial Warrior
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
+                              ))}
+                            </div>
+                            <p className="text-center text-gray-400 text-xs mt-3">
+                              {Object.values(mintedNFTs).filter(Boolean).length}/3 NFTs Collected
+                            </p>
+                          </div>
                         </div>
                       )}
                     </CardContent>
                   </Card>
                 </div>
               </motion.div>
-            )}
-          </AnimatePresence>
+            </div>
+          </div>
 
           {/* Retro Footer */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
+            transition={{ delay: 1 }}
             className="mt-8 text-center space-y-2"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full">
-              <span className="text-cyan-400 text-xs font-bold">🎮 XRP LEDGER TESTNET</span>
+              <span className="text-cyan-400 text-xs font-bold">🎮 XRP LEDGER TESTNET • NO REAL VALUE</span>
             </div>
-            <p className="text-gray-500 text-xs">No real value • Educational purposes only</p>
           </motion.div>
         </div>
       </div>
