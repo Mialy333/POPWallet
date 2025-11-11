@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins, Globe, Target, CheckCircle2, Lock, Plane, Map, MapPin, Passport, GraduationCap } from "lucide-react";
+import { Wallet, TrendingUp, Award, Sparkles, Euro, Zap, Trophy, Star, Coins, Globe, Target, CheckCircle2, Lock, Plane, Map, MapPin, Passport, GraduationCap, Briefcase } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -335,7 +336,7 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center mb-8"
           >
-            {/* Passport-style Badge */}
+            {/* Travel Badge */}
             <motion.div 
               className="inline-block mb-4"
               animate={{ y: [0, -10, 0] }}
@@ -369,9 +370,9 @@ export default function Home() {
             </motion.h1>
             
             <div className="flex items-center justify-center gap-2 text-cyan-400 text-xs md:text-sm font-bold tracking-widest mb-3">
-              <Passport className="w-4 h-4" />
+              <Briefcase className="w-4 h-4" />
               <span className="uppercase">Your Study Abroad Financial Companion</span>
-              <Passport className="w-4 h-4" />
+              <Briefcase className="w-4 h-4" />
             </div>
 
             {/* Country Flags Animation */}
