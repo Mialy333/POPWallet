@@ -24,8 +24,38 @@ export default function Layout({ children, currentPageName }) {
     }
   };
 
-  const handleLogout = () => {
-    base44.auth.logout();
+  const handleLogout = async () => {
+    try {
+      // Clear all user progress and wallet data from database before logout
+      await base44.auth.updateMe({
+        xrpl_wallet_address: null,
+        monthly_income: null,
+        monthly_expenses: null,
+        monthly_balance: null,
+        goals: [],
+        goals_completed: false,
+        mission_smart_saver: false,
+        mission_explorer: false,
+        mission_planner: false,
+        mission_xrpl: false,
+        nft_smart_saver: false,
+        nft_explorer: false,
+        nft_planner: false,
+        nft_budget_explorer: false,
+        selected_city: null,
+        local_currency: null
+      });
+    } catch (err) {
+      console.error('Error clearing user data:', err);
+    } finally {
+      // Clear any browser storage
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      // Logout and redirect (this will reload the page)
+      base44.auth.logout();
+    }
   };
 
   const handleLogin = () => {
