@@ -57,8 +57,8 @@ export default function Layout({ children, currentPageName }) {
               >
                 <motion.div
                   className="relative"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                  animate={{ y: [0, -3, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 >
                   <div className="relative w-8 h-8 flex items-center justify-center">
                     <motion.div
@@ -73,7 +73,7 @@ export default function Layout({ children, currentPageName }) {
                       }}
                       transition={{ duration: 3, repeat: Infinity }}
                     />
-                    <span className="text-2xl relative z-10">💎</span>
+                    <span className="text-2xl relative z-10">🎒</span>
                   </div>
                 </motion.div>
                 <h1 
@@ -83,6 +83,7 @@ export default function Layout({ children, currentPageName }) {
                     background: 'linear-gradient(45deg, #00ffff, #ff00ff, #ffff00)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
                   }}
                 >
                   CAMPUSFi
