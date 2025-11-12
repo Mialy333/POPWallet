@@ -1128,18 +1128,20 @@ export default function Home() {
                       <div>
                         <Label className="text-purple-400 font-bold text-sm mb-2 flex items-center gap-2 tracking-wide">
                           <Landmark className="w-4 h-4" />
-                          YOUR LOCAL CURRENCY
+                          YOUR HOME CURRENCY
                         </Label>
                         <Select value={localCurrency} onValueChange={setLocalCurrency}>
                           <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-12 font-bold">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-black border-2 border-purple-500">
-                            {Object.entries(CURRENCY_RATES).map(([code, data]) => (
-                              <SelectItem key={code} value={code} className="text-purple-100 font-bold">
-                                {data.flag} {code} - {data.name}
-                              </SelectItem>
-                            ))}
+                            {Object.entries(CURRENCY_RATES)
+                              .filter(([code]) => code !== 'EUR')
+                              .map(([code, data]) => (
+                                <SelectItem key={code} value={code} className="text-purple-100 font-bold">
+                                  {data.flag} {code} - {data.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -1151,7 +1153,7 @@ export default function Home() {
                         </Label>
                         <Input
                           type="number"
-                          placeholder={localCurrency === 'MGA' ? 'e.g., 100000' : 'e.g., 1000'}
+                          placeholder={localCurrency === 'MGA' ? 'e.g., 100000' : localCurrency === 'INR' ? 'e.g., 10000' : 'e.g., 1000'}
                           value={localAmount}
                           onChange={(e) => setLocalAmount(e.target.value)}
                           className="border-2 border-pink-500/50 bg-black/50 text-pink-100 placeholder-gray-600 focus:border-pink-400 h-12 text-lg font-bold"
@@ -1178,7 +1180,7 @@ export default function Home() {
                       ) : (
                         <>
                           <Plane className="w-5 h-5 mr-2" />
-                          CONVERT TO EUR ⚡
+                          CONVERT {localCurrency} → EUR ⚡
                         </>
                       )}
                     </Button>
