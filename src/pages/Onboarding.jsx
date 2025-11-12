@@ -8,7 +8,7 @@ import {
   TrendingUp, Lock, Star, Plane, Gift
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from './utils';
+import { createPageUrl } from '../utils';
 
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(0);
