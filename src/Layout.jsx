@@ -55,27 +55,7 @@ export default function Layout({ children, currentPageName }) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <motion.div
-                  className="relative"
-                  animate={{ y: [0, -3, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <div className="relative w-8 h-8 flex items-center justify-center">
-                    <motion.div
-                      className="absolute inset-0"
-                      animate={{ 
-                        boxShadow: [
-                          '0 0 10px rgba(0,255,255,0.5)',
-                          '0 0 20px rgba(255,0,255,0.5)',
-                          '0 0 10px rgba(255,255,0,0.5)',
-                          '0 0 10px rgba(0,255,255,0.5)'
-                        ]
-                      }}
-                      transition={{ duration: 3, repeat: Infinity }}
-                    />
-                    <span className="text-2xl relative z-10">🎒</span>
-                  </div>
-                </motion.div>
+                <span className="text-2xl">🎒</span>
                 <h1 
                   className="text-2xl font-black tracking-wider"
                   style={{
