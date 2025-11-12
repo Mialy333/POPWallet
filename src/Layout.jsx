@@ -1,13 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { motion } from 'framer-motion';
-import { Home, BookOpen, Zap, LogOut } from 'lucide-react';
+import { Home, BookOpen, Zap, LogOut, LogIn } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function Layout({ children, currentPageName }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const authenticated = await base44.auth.isAuthenticated();
+      setIsAuthenticated(authenticated);
+    } catch (err) {
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     base44.auth.logout();
+  };
+
+  const handleLogin = () => {
+    base44.auth.redirectToLogin();
   };
 
   return (
@@ -79,15 +101,31 @@ export default function Layout({ children, currentPageName }) {
                 </motion.button>
               </Link>
 
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm bg-red-900/50 text-red-400 border-2 border-red-700 hover:border-red-500 transition-all"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden md:inline">Logout</span>
-              </motion.button>
+              {!isLoading && (
+                <>
+                  {isAuthenticated ? (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm bg-red-900/50 text-red-400 border-2 border-red-700 hover:border-red-500 transition-all"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="hidden md:inline">Logout</span>
+                    </motion.button>
+                  ) : (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleLogin}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm bg-green-900/50 text-green-400 border-2 border-green-700 hover:border-green-500 transition-all"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      <span className="hidden md:inline">Login</span>
+                    </motion.button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
