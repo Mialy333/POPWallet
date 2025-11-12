@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1094,13 +1095,15 @@ export default function Home() {
                                 .filter(([code]) => code !== 'EUR')
                                 .map(([code, data]) => (
                                   <SelectItem key={code} value={code} className="text-purple-100 font-bold text-sm">
-                                    <motion.span
-                                      whileHover={{ scale: 1.3, rotate: 10 }}
-                                      className="inline-block mr-1"
-                                    >
-                                      {data.flag}
-                                    </motion.span>
-                                    {code}
+                                    <span className="flex items-center gap-2">
+                                      <motion.span
+                                        whileHover={{ scale: 1.3, rotate: 10 }}
+                                        className="inline-block"
+                                      >
+                                        {data.flag}
+                                      </motion.span>
+                                      <span>{code} - {data.name}</span>
+                                    </span>
                                   </SelectItem>
                                 ))}
                             </SelectContent>
