@@ -11,6 +11,9 @@ import CitySelector from '../components/missions/CitySelector';
 import BudgetMission from '../components/missions/BudgetMission';
 import CurrencyConverter from '../components/missions/CurrencyConverter';
 import MapExplorer from '../components/missions/MapExplorer';
+import GoalsPlanner from '../components/missions/GoalsPlanner';
+import WalletPassport from '../components/missions/WalletPassport';
+import XRPLPayment from '../components/missions/XRPLPayment';
 
 // Fix Leaflet default icon issue
 if (typeof window !== 'undefined') {
@@ -80,36 +83,6 @@ const CITY_COSTS = {
     ]
   }
 };
-
-const COMMUNITY_POSTS = [
-  {
-    id: 1,
-    author: 'Maria S.',
-    avatar: '👩‍🎓',
-    city: 'Lisbon',
-    tip: 'Student discounts at Pingo Doce supermarket every Tuesday! Save 15% on groceries 🛒',
-    likes: 42,
-    time: '2h ago'
-  },
-  {
-    id: 2,
-    author: 'Ahmed K.',
-    avatar: '👨‍🎓',
-    city: 'Paris',
-    tip: 'Use the Navigo student pass - unlimited metro for €38/month instead of €75! 🚇',
-    likes: 38,
-    time: '5h ago'
-  },
-  {
-    id: 3,
-    author: 'Sofia R.',
-    avatar: '👩‍💼',
-    city: 'Madrid',
-    tip: 'Menú del día at local restaurants = 3-course meal for €10-12. Way cheaper than cooking! 🍽️',
-    likes: 55,
-    time: '1d ago'
-  }
-];
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -776,18 +749,39 @@ export default function Home() {
               </TabsContent>
 
               <TabsContent value="goals">
-                {/* TODO: Create GoalsPlanner component */}
-                <p className="text-gray-400">Goals tab - will be extracted to component</p>
+                <GoalsPlanner
+                  goals={goals}
+                  setGoals={setGoals}
+                  goalsSet={goalsSet}
+                  onSetGoals={handleSetGoals}
+                />
               </TabsContent>
 
               <TabsContent value="wallet">
-                {/* TODO: Create WalletPassport component */}
-                <p className="text-gray-400">Wallet tab - will be extracted to component</p>
+                <WalletPassport
+                  walletAddress={walletAddress}
+                  walletSeed={walletSeed}
+                  isConnecting={isConnecting}
+                  xrplLoaded={xrplLoaded}
+                  missions={missions}
+                  mintedNFTs={mintedNFTs}
+                  currentlyMinting={currentlyMinting}
+                  onGenerateWallet={generateWallet}
+                  onMintNFT={mintNFT}
+                />
               </TabsContent>
 
               <TabsContent value="xrpl">
-                {/* TODO: Create XRPLPayment component */}
-                <p className="text-gray-400">XRPL tab - will be extracted to component</p>
+                <XRPLPayment
+                  walletAddress={walletAddress}
+                  converterUsed={converterUsed}
+                  localCurrency={localCurrency}
+                  currencyFlag={CURRENCY_RATES[localCurrency]?.flag}
+                  xrplTransactionDone={xrplTransactionDone}
+                  isSimulatingTx={isSimulatingTx}
+                  txHash={txHash}
+                  onSimulateTransaction={simulateXRPLTransaction}
+                />
               </TabsContent>
             </Tabs>
           </motion.div>
