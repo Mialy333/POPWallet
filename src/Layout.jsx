@@ -56,10 +56,25 @@ export default function Layout({ children, currentPageName }) {
                 whileTap={{ scale: 0.95 }}
               >
                 <motion.div
+                  className="relative"
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                 >
-                  <Zap className="w-6 h-6 text-cyan-400" />
+                  <div className="relative w-8 h-8 flex items-center justify-center">
+                    <motion.div
+                      className="absolute inset-0"
+                      animate={{ 
+                        boxShadow: [
+                          '0 0 10px rgba(0,255,255,0.5)',
+                          '0 0 20px rgba(255,0,255,0.5)',
+                          '0 0 10px rgba(255,255,0,0.5)',
+                          '0 0 10px rgba(0,255,255,0.5)'
+                        ]
+                      }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                    />
+                    <span className="text-2xl relative z-10">💎</span>
+                  </div>
                 </motion.div>
                 <h1 
                   className="text-2xl font-black tracking-wider"
@@ -70,7 +85,7 @@ export default function Layout({ children, currentPageName }) {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  CAMPUS<span className="text-pink-500">Fi</span>
+                  CAMPUSFi
                 </h1>
               </motion.div>
             </Link>

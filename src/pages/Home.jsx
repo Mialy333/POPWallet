@@ -639,7 +639,7 @@ export default function Home() {
                 ease: "easeInOut"
               }}
             >
-              CAMPUS<span className="text-pink-500">Fi</span>
+              CAMPUSFi
             </motion.h1>
             
             {user && (
