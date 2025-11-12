@@ -617,29 +617,31 @@ export default function Home() {
       </div>
 
       {/* Confetti Effect */}
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-          {[...Array(50)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute text-2xl"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: '-10%'
-              }}
-              initial={{ y: 0, rotate: 0, opacity: 1 }}
-              animate={{ 
-                y: (typeof window !== 'undefined' ? window.innerHeight : 1000) + 100, 
-                rotate: 360,
-                opacity: 0
-              }}
-              transition={{ duration: Math.random() * 2 + 2, delay: Math.random() * 0.5 }}
-            >
-              {['⭐', '💎', '🎮', '🏆', '💰', '✈️', '🌍', '🎓'][Math.floor(Math.random() * 8)]}
-            </motion.div>
-          ))}
-        </div>
-      )}
+      <AnimatePresence>
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-50">
+            {[...Array(50)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute text-2xl"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: '-10%'
+                }}
+                initial={{ y: 0, rotate: 0, opacity: 1 }}
+                animate={{ 
+                  y: (typeof window !== 'undefined' ? window.innerHeight : 1000) + 100, 
+                  rotate: 360,
+                  opacity: 0
+                }}
+                transition={{ duration: Math.random() * 2 + 2, delay: Math.random() * 0.5 }}
+              >
+                {['⭐', '💎', '🎮', '🏆', '💰', '✈️', '🌍', '🎓'][Math.floor(Math.random() * 8)]}
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </AnimatePresence>
 
       <style jsx>{`
         @keyframes grid-move {
@@ -653,6 +655,14 @@ export default function Home() {
         @keyframes pulse-border {
           0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.1); }
           50% { box-shadow: 0 0 30px rgba(255, 0, 255, 0.5), inset 0 0 30px rgba(255, 0, 255, 0.1); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes bounce-subtle {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
         }
         .leaflet-container {
           height: 100%;
@@ -678,10 +688,11 @@ export default function Home() {
 
       <div className="relative z-10 p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Compact Header */}
+          {/* Header with Animations */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, type: "spring" }}
             className="text-center mb-4"
           >
             <motion.h1 
@@ -693,18 +704,38 @@ export default function Home() {
                 WebkitTextFillColor: 'transparent',
                 animation: 'neon-glow 2s ease-in-out infinite'
               }}
+              animate={{ 
+                scale: [1, 1.02, 1],
+              }}
+              transition={{ 
+                duration: 2, 
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
             >
               CAMPUS<span className="text-pink-500">Fi</span>
             </motion.h1>
             
             {user && (
-              <p className="text-cyan-400 font-bold text-sm">
-                Welcome, <span className="text-pink-400">{user.full_name || 'Explorer'}</span>! 🚀
-              </p>
+              <motion.p 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-cyan-400 font-bold text-sm"
+              >
+                Welcome, <span className="text-pink-400">{user.full_name || 'Explorer'}</span>! 
+                <motion.span
+                  animate={{ rotate: [0, 14, -8, 14, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+                  className="inline-block ml-1"
+                >
+                  🚀
+                </motion.span>
+              </motion.p>
             )}
           </motion.div>
 
-          {/* Error Alert */}
+          {/* Error Alert with Animation */}
           <AnimatePresence>
             {error && (
               <motion.div
@@ -722,36 +753,64 @@ export default function Home() {
             )}
           </AnimatePresence>
 
-          {/* Mission Progress - Compact */}
+          {/* Mission Progress - Animated */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
             className="mb-4"
           >
-            <Card className="bg-black/40 backdrop-blur-sm border-2 border-cyan-500/50">
+            <Card className="bg-black/40 backdrop-blur-sm border-2 border-cyan-500/50 hover:border-cyan-400 transition-all duration-300">
               <CardHeader className="p-3 border-b-2 border-cyan-500/30">
                 <CardTitle className="flex items-center gap-2 text-sm text-cyan-400 font-black tracking-wide">
-                  <Map className="w-4 h-4" />
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Map className="w-4 h-4" />
+                  </motion.div>
                   MISSIONS: {missions.filter(m => m.completed).length}/4
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {missions.map((mission) => (
-                    <div
+                  {missions.map((mission, index) => (
+                    <motion.div
                       key={mission.id}
-                      className={`border-2 rounded-lg p-2 ${
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ scale: 1.05 }}
+                      className={`border-2 rounded-lg p-2 transition-all duration-300 ${
                         mission.completed 
                           ? 'border-cyan-400 bg-cyan-900/30' 
                           : 'border-gray-700 bg-gray-900/30'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <mission.icon className={`w-4 h-4 ${
-                          mission.completed ? 'text-cyan-400' : 'text-gray-600'
-                        }`} />
+                        <motion.div
+                          animate={mission.completed ? { 
+                            rotate: [0, 360],
+                            scale: [1, 1.2, 1]
+                          } : {}}
+                          transition={mission.completed ? { 
+                            duration: 2, 
+                            repeat: Infinity,
+                            repeatDelay: 3 
+                          } : {}}
+                        >
+                          <mission.icon className={`w-4 h-4 ${
+                            mission.completed ? 'text-cyan-400' : 'text-gray-600'
+                          }`} />
+                        </motion.div>
                         {mission.completed ? (
-                          <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 500 }}
+                          >
+                            <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+                          </motion.div>
                         ) : (
                           <Lock className="w-3 h-3 text-gray-600" />
                         )}
@@ -761,30 +820,44 @@ export default function Home() {
                       }`}>
                         {mission.title}
                       </h3>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* City Selector - Compact */}
+          {/* City Selector - Animated */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
             className="mb-4"
           >
-            <Card className="bg-black/40 backdrop-blur-sm border-2 border-purple-500/50">
+            <Card className="bg-black/40 backdrop-blur-sm border-2 border-purple-500/50 hover:border-purple-400 transition-all duration-300">
               <CardContent className="p-3">
-                <Label className="text-purple-400 font-bold text-xs mb-2">STUDY CITY</Label>
+                <Label className="text-purple-400 font-bold text-xs mb-2 flex items-center gap-1">
+                  <motion.span
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    🏙️
+                  </motion.span>
+                  STUDY CITY
+                </Label>
                 <Select value={selectedCity} onValueChange={handleCityChange}>
-                  <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-10 font-bold text-sm">
+                  <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-10 font-bold text-sm hover:border-purple-400 transition-all">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-black border-2 border-purple-500">
                     {Object.entries(CITY_COSTS).map(([key, data]) => (
                       <SelectItem key={key} value={key} className="text-purple-100 font-bold text-sm">
-                        {data.flag} {data.name} (€{data.avgCost}/mo)
+                        <motion.span
+                          whileHover={{ scale: 1.2 }}
+                          className="inline-block"
+                        >
+                          {data.flag}
+                        </motion.span> {data.name} (€{data.avgCost}/mo)
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -793,592 +866,1069 @@ export default function Home() {
             </Card>
           </motion.div>
 
-          {/* Tabbed Content - Main Innovation for Reduced Scrolling */}
-          <Tabs defaultValue="budget" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-gray-900/50 border-2 border-cyan-500/30 mb-4">
-              <TabsTrigger value="budget" className="text-xs font-bold data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">
-                <Coins className="w-3 h-3 mr-1" />
-                Budget
-              </TabsTrigger>
-              <TabsTrigger value="convert" className="text-xs font-bold data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400">
-                <Globe className="w-3 h-3 mr-1" />
-                Convert
-              </TabsTrigger>
-              <TabsTrigger value="map" className="text-xs font-bold data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">
-                <Map className="w-3 h-3 mr-1" />
-                Map
-              </TabsTrigger>
-              <TabsTrigger value="goals" className="text-xs font-bold data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400">
-                <Target className="w-3 h-3 mr-1" />
-                Goals
-              </TabsTrigger>
-              <TabsTrigger value="wallet" className="text-xs font-bold data-[state=active]:bg-yellow-500/20 data-[state=active]:text-yellow-400">
-                <Wallet className="w-3 h-3 mr-1" />
-                Wallet
-              </TabsTrigger>
-              <TabsTrigger value="xrpl" className="text-xs font-bold data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400">
-                <Send className="w-3 h-3 mr-1" />
-                XRPL
-              </TabsTrigger>
-            </TabsList>
+          {/* Tabbed Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Tabs defaultValue="budget" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-gray-900/50 border-2 border-cyan-500/30 mb-4">
+                <TabsTrigger value="budget" className="text-xs font-bold data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 transition-all">
+                  <Coins className="w-3 h-3 mr-1" />
+                  Budget
+                </TabsTrigger>
+                <TabsTrigger value="convert" className="text-xs font-bold data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 transition-all">
+                  <Globe className="w-3 h-3 mr-1" />
+                  Convert
+                </TabsTrigger>
+                <TabsTrigger value="map" className="text-xs font-bold data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 transition-all">
+                  <Map className="w-3 h-3 mr-1" />
+                  Map
+                </TabsTrigger>
+                <TabsTrigger value="goals" className="text-xs font-bold data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400 transition-all">
+                  <Target className="w-3 h-3 mr-1" />
+                  Goals
+                </TabsTrigger>
+                <TabsTrigger value="wallet" className="text-xs font-bold data-[state=active]:bg-yellow-500/20 data-[state=active]:text-yellow-400 transition-all">
+                  <Wallet className="w-3 h-3 mr-1" />
+                  Wallet
+                </TabsTrigger>
+                <TabsTrigger value="xrpl" className="text-xs font-bold data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400 transition-all">
+                  <Send className="w-3 h-3 mr-1" />
+                  XRPL
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Budget Tab */}
-            <TabsContent value="budget">
-              <Card className="bg-black/40 backdrop-blur-sm border-2 border-cyan-500/50">
-                <CardHeader className="p-3 border-b-2 border-cyan-500/30">
-                  <CardTitle className="flex items-center gap-2 text-base text-cyan-400 font-black">
-                    <Coins className="w-5 h-5" />
-                    MISSION 1: BUDGET
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-cyan-400 font-bold text-xs mb-1">INCOME (€)</Label>
-                      <Input
-                        type="number"
-                        placeholder="e.g., 1000"
-                        value={income}
-                        onChange={(e) => setIncome(e.target.value)}
-                        className="border-2 border-cyan-500/50 bg-black/50 text-cyan-100 h-10 text-sm font-bold"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-pink-400 font-bold text-xs mb-1">EXPENSES (€)</Label>
-                      <Input
-                        type="number"
-                        placeholder="e.g., 800"
-                        value={expenses}
-                        onChange={(e) => setExpenses(e.target.value)}
-                        className="border-2 border-pink-500/50 bg-black/50 text-pink-100 h-10 text-sm font-bold"
-                      />
-                    </div>
-                  </div>
-
-                  {income && expenses && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs font-bold text-cyan-400">
-                        <span>USAGE</span>
-                        <span>{getSpendingPercentage().toFixed(0)}%</span>
-                      </div>
-                      <div className="relative h-6 bg-gray-900 rounded-full overflow-hidden border-2 border-cyan-500/30">
+              {/* Budget Tab */}
+              <TabsContent value="budget">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                >
+                  <Card className="bg-black/40 backdrop-blur-sm border-2 border-cyan-500/50 hover:shadow-[0_0_30px_rgba(0,255,255,0.3)] transition-all duration-300">
+                    <CardHeader className="p-3 border-b-2 border-cyan-500/30">
+                      <CardTitle className="flex items-center gap-2 text-base text-cyan-400 font-black">
                         <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${getSpendingPercentage()}%` }}
-                          className={`h-full bg-gradient-to-r ${getProgressColor(getSpendingPercentage())}`}
-                        />
+                          animate={{ rotate: [0, 360] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Coins className="w-5 h-5" />
+                        </motion.div>
+                        MISSION 1: BUDGET
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Label className="text-cyan-400 font-bold text-xs mb-1 flex items-center gap-1">
+                            <motion.span animate={{ y: [0, -2, 0] }} transition={{ duration: 1, repeat: Infinity }}>
+                              💰
+                            </motion.span>
+                            INCOME (€)
+                          </Label>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 1000"
+                            value={income}
+                            onChange={(e) => setIncome(e.target.value)}
+                            className="border-2 border-cyan-500/50 bg-black/50 text-cyan-100 h-10 text-sm font-bold hover:border-cyan-400 focus:border-cyan-400 transition-all"
+                          />
+                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Label className="text-pink-400 font-bold text-xs mb-1 flex items-center gap-1">
+                            <motion.span animate={{ y: [0, -2, 0] }} transition={{ duration: 1, repeat: Infinity, delay: 0.5 }}>
+                              📊
+                            </motion.span>
+                            EXPENSES (€)
+                          </Label>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 800"
+                            value={expenses}
+                            onChange={(e) => setExpenses(e.target.value)}
+                            className="border-2 border-pink-500/50 bg-black/50 text-pink-100 h-10 text-sm font-bold hover:border-pink-400 focus:border-pink-400 transition-all"
+                          />
+                        </motion.div>
                       </div>
-                    </div>
-                  )}
 
-                  <Button 
-                    onClick={calculateBalance}
-                    className="w-full h-10 text-sm font-black bg-gradient-to-r from-cyan-500 to-purple-600"
-                  >
-                    <Trophy className="w-4 h-4 mr-2" />
-                    CALCULATE ⚡
-                  </Button>
-
-                  {balance !== null && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className={`border-2 rounded-xl p-4 ${
-                        balance > 0 ? 'border-cyan-400 bg-cyan-900/30' : 'border-red-400 bg-red-900/30'
-                      }`}
-                    >
-                      <p className="text-xs font-bold text-gray-300 mb-2">MONTHLY SAVINGS</p>
-                      <div className={`text-3xl font-black text-center mb-2 ${
-                        balance > 0 ? 'text-cyan-400' : 'text-red-400'
-                      }`}>
-                        €{Math.abs(balance).toFixed(2)}
-                      </div>
-                      {balance > 50 && (
-                        <div className="text-center">
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border-2 border-yellow-500 rounded-full text-yellow-400 text-xs font-black">
-                            <Trophy className="w-3 h-3" />
-                            COMPLETE! ⚡
-                          </span>
-                        </div>
+                      {income && expenses && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="space-y-2"
+                        >
+                          <div className="flex justify-between text-xs font-bold text-cyan-400">
+                            <span>USAGE</span>
+                            <motion.span
+                              key={getSpendingPercentage()}
+                              initial={{ scale: 1.3 }}
+                              animate={{ scale: 1 }}
+                            >
+                              {getSpendingPercentage().toFixed(0)}%
+                            </motion.span>
+                          </div>
+                          <div className="relative h-6 bg-gray-900 rounded-full overflow-hidden border-2 border-cyan-500/30">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${getSpendingPercentage()}%` }}
+                              transition={{ duration: 1, ease: "easeOut" }}
+                              className={`h-full bg-gradient-to-r ${getProgressColor(getSpendingPercentage())}`}
+                            />
+                          </div>
+                        </motion.div>
                       )}
-                    </motion.div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
 
-            {/* Convert Tab */}
-            <TabsContent value="convert">
-              <Card className="bg-black/40 backdrop-blur-sm border-2 border-purple-500/50">
-                <CardHeader className="p-3 border-b-2 border-purple-500/30">
-                  <CardTitle className="flex items-center gap-2 text-base text-purple-400 font-black">
-                    <Globe className="w-5 h-5" />
-                    MISSION 2: CONVERTER
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3">
-                  <p className="text-xs text-gray-400 text-center font-bold bg-purple-900/20 border border-purple-500/30 rounded-lg p-2">
-                    🌍 LIVE RATES API
-                  </p>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-purple-400 font-bold text-xs mb-1">HOME CURRENCY</Label>
-                      <Select value={localCurrency} onValueChange={setLocalCurrency}>
-                        <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-10 font-bold text-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-black border-2 border-purple-500">
-                          {Object.entries(CURRENCY_RATES)
-                            .filter(([code]) => code !== 'EUR')
-                            .map(([code, data]) => (
-                              <SelectItem key={code} value={code} className="text-purple-100 font-bold text-sm">
-                                {data.flag} {code}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
+                        <Button 
+                          onClick={calculateBalance}
+                          className="w-full h-10 text-sm font-black bg-gradient-to-r from-cyan-500 to-purple-600 hover:shadow-[0_0_20px_rgba(0,255,255,0.5)] transition-all"
+                        >
+                          <Trophy className="w-4 h-4 mr-2" />
+                          CALCULATE ⚡
+                        </Button>
+                      </motion.div>
 
-                    <div>
-                      <Label className="text-pink-400 font-bold text-xs mb-1">AMOUNT</Label>
-                      <Input
-                        type="number"
-                        placeholder={localCurrency === 'MGA' ? '100000' : '1000'}
-                        value={localAmount}
-                        onChange={(e) => setLocalAmount(e.target.value)}
-                        className="border-2 border-pink-500/50 bg-black/50 text-pink-100 h-10 text-sm font-bold"
-                      />
-                    </div>
-                  </div>
+                      <AnimatePresence mode="wait">
+                        {balance !== null && (
+                          <motion.div
+                            key="balance-result"
+                            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                            className={`border-2 rounded-xl p-4 ${
+                              balance > 0 ? 'border-cyan-400 bg-cyan-900/30' : 'border-red-400 bg-red-900/30'
+                            }`}
+                          >
+                            <p className="text-xs font-bold text-gray-300 mb-2">MONTHLY SAVINGS</p>
+                            <motion.div 
+                              className={`text-3xl font-black text-center mb-2 ${
+                                balance > 0 ? 'text-cyan-400' : 'text-red-400'
+                              }`}
+                              animate={{ scale: [1, 1.1, 1] }}
+                              transition={{ duration: 0.5 }}
+                            >
+                              €{Math.abs(balance).toFixed(2)}
+                            </motion.div>
+                            {balance > 50 && (
+                              <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="text-center"
+                              >
+                                <motion.span 
+                                  className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border-2 border-yellow-500 rounded-full text-yellow-400 text-xs font-black"
+                                  animate={{ 
+                                    boxShadow: [
+                                      '0 0 0px rgba(234, 179, 8, 0.5)',
+                                      '0 0 20px rgba(234, 179, 8, 0.8)',
+                                      '0 0 0px rgba(234, 179, 8, 0.5)'
+                                    ]
+                                  }}
+                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                >
+                                  <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                  >
+                                    <Trophy className="w-3 h-3" />
+                                  </motion.div>
+                                  COMPLETE! ⚡
+                                </motion.span>
+                              </motion.div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
 
-                  <Button 
-                    onClick={fetchRealExchangeRate}
-                    disabled={isLoadingRate || !localAmount}
-                    className="w-full h-10 text-sm font-black bg-gradient-to-r from-purple-500 to-pink-600"
-                  >
-                    {isLoadingRate ? (
-                      <>
+              {/* Convert Tab */}
+              <TabsContent value="convert">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                >
+                  <Card className="bg-black/40 backdrop-blur-sm border-2 border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all duration-300">
+                    <CardHeader className="p-3 border-b-2 border-purple-500/30">
+                      <CardTitle className="flex items-center gap-2 text-base text-purple-400 font-black">
                         <motion.div
                           animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="inline-block mr-2"
+                          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                         >
-                          <Zap className="w-4 h-4" />
+                          <Globe className="w-5 h-5" />
                         </motion.div>
-                        LOADING...
-                      </>
-                    ) : (
-                      <>
-                        <Plane className="w-4 h-4 mr-2" />
-                        CONVERT → EUR ⚡
-                      </>
-                    )}
-                  </Button>
-
-                  {convertedEuro !== null && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="border-2 border-purple-400 bg-purple-900/30 rounded-xl p-4"
-                    >
-                      <p className="text-xs font-bold text-purple-400 mb-2">RESULT</p>
-                      <p className="text-3xl font-black text-purple-400 mb-2">
-                        €{convertedEuro.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-300 font-bold mb-2">
-                        {CURRENCY_RATES[localCurrency].symbol}{localAmount} {localCurrency} = €{convertedEuro.toFixed(2)}
-                      </p>
-                      {realExchangeRate && (
-                        <p className="text-xs text-cyan-400 font-bold mb-2">
-                          Rate: 1 {localCurrency} = €{realExchangeRate.toFixed(6)}
-                        </p>
-                      )}
-                      <div className="bg-cyan-900/20 border border-cyan-500/50 rounded-lg p-2">
-                        <p className="text-xs text-gray-300">
-                          In {cityData.name}: <strong className="text-cyan-400">€{convertedEuro.toFixed(0)}</strong>
-                          {convertedEuro >= cityData.avgCost ? 
-                            ` (${((convertedEuro / cityData.avgCost) * 100).toFixed(0)}% of avg cost!)` :
-                            ` (need €${(cityData.avgCost - convertedEuro).toFixed(0)} more)`
-                          }
-                        </p>
-                      </div>
-                      <div className="mt-2 text-center">
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full text-yellow-400 text-xs font-black">
-                          COMPLETE! ⚡
-                        </span>
-                      </div>
-                    </motion.div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Map Tab */}
-            <TabsContent value="map">
-              {converterUsed ? (
-                <Card className="bg-black/40 backdrop-blur-sm border-2 border-cyan-500/50">
-                  <CardHeader className="p-3 border-b-2 border-cyan-500/30">
-                    <CardTitle className="flex items-center gap-2 text-base text-cyan-400 font-black">
-                      <Map className="w-5 h-5" />
-                      {cityData.name.toUpperCase()} {cityData.flag}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      <div className="px-2 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full flex items-center gap-1">
-                        <Coffee className="w-3 h-3 text-yellow-400" />
-                        <span className="text-yellow-400 text-xs font-bold">MEALS</span>
-                      </div>
-                      <div className="px-2 py-1 bg-blue-500/20 border border-blue-500 rounded-full flex items-center gap-1">
-                        <HomeIcon className="w-3 h-3 text-blue-400" />
-                        <span className="text-blue-400 text-xs font-bold">HOUSING</span>
-                      </div>
-                      <div className="px-2 py-1 bg-green-500/20 border border-green-500 rounded-full flex items-center gap-1">
-                        <BookOpen className="w-3 h-3 text-green-400" />
-                        <span className="text-green-400 text-xs font-bold">STUDY</span>
-                      </div>
-                    </div>
-
-                    <div className="h-64 rounded-xl overflow-hidden border-2 border-cyan-500/30">
-                      {typeof window !== 'undefined' && (
-                        <MapContainer
-                          center={cityData.coords}
-                          zoom={13}
-                          style={{ height: '100%', width: '100%' }}
-                          className="z-0"
-                        >
-                          <TileLayer
-                            attribution='&copy; OpenStreetMap'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                          />
-                          {cityData.spots.map((spot) => (
-                            <Marker key={spot.id} position={spot.coords}>
-                              <Popup>
-                                <div className="font-bold text-xs">
-                                  {getMarkerIcon(spot.category)} {spot.name}
-                                </div>
-                                <div className="text-xs text-gray-700">{spot.description}</div>
-                                <div className="text-xs font-bold text-green-600 mt-1">
-                                  💰 {spot.price}
-                                </div>
-                              </Popup>
-                            </Marker>
-                          ))}
-                        </MapContainer>
-                      )}
-                    </div>
-
-                    <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                      {cityData.spots.map((spot) => (
-                        <div key={spot.id} className="bg-gray-900/50 border border-gray-700 rounded-lg p-2 hover:border-cyan-400 transition-all">
-                          <p className="text-cyan-400 font-bold text-xs mb-1">{getMarkerIcon(spot.category)} {spot.name}</p>
-                          <p className="text-xs text-gray-400">{spot.description}</p>
-                          <p className="text-xs text-green-400 font-bold mt-1">💰 {spot.price}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="bg-black/40 backdrop-blur-sm border-2 border-gray-700">
-                  <CardContent className="p-8 text-center">
-                    <Lock className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-500 font-bold">Complete Mission 2 to unlock the map!</p>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            {/* Goals Tab */}
-            <TabsContent value="goals">
-              <Card className="bg-black/40 backdrop-blur-sm border-2 border-pink-500/50">
-                <CardHeader className="p-3 border-b-2 border-pink-500/30">
-                  <CardTitle className="flex items-center gap-2 text-base text-pink-400 font-black">
-                    <Target className="w-5 h-5" />
-                    MISSION 3: GOALS
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3">
-                  {goals.map((goal, index) => (
-                    <div key={index}>
-                      <Label className="text-pink-400 font-bold text-xs mb-1">GOAL {index + 1}</Label>
-                      <Input
-                        placeholder={`e.g., ${['Save €100', 'Cut costs 20%', 'Find job'][index]}`}
-                        value={goal}
-                        onChange={(e) => {
-                          const newGoals = [...goals];
-                          newGoals[index] = e.target.value;
-                          setGoals(newGoals);
-                        }}
-                        className="border-2 border-pink-500/50 bg-black/50 text-pink-100 h-10 text-sm font-bold"
-                        disabled={goalsSet}
-                      />
-                    </div>
-                  ))}
-                  
-                  {!goalsSet ? (
-                    <Button 
-                      onClick={handleSetGoals}
-                      className="w-full h-10 text-sm font-black bg-gradient-to-r from-pink-500 to-orange-600"
-                    >
-                      <Target className="w-4 h-4 mr-2" />
-                      LOCK GOALS ⚡
-                    </Button>
-                  ) : (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="border-2 border-pink-400 bg-pink-900/30 rounded-xl p-4 text-center"
-                    >
-                      <p className="text-2xl mb-2">🎯</p>
-                      <p className="text-pink-400 font-black text-sm mb-2">GOALS ACTIVATED!</p>
-                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full text-yellow-400 text-xs font-black">
-                        COMPLETE! ⚡
-                      </span>
-                    </motion.div>
-                  )}
-
-                  <div className="border-2 border-purple-400 bg-purple-900/20 rounded-xl p-3 mt-4">
-                    <h3 className="text-xs font-black text-purple-400 mb-2 flex items-center gap-1">
-                      <MessageCircle className="w-3 h-3" />
-                      COMMUNITY TIPS
-                    </h3>
-                    <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                      {COMMUNITY_POSTS.map((post) => (
-                        <div key={post.id} className="border border-gray-700 bg-gray-900/50 rounded-lg p-2 hover:border-cyan-400 transition-all">
-                          <div className="flex items-start gap-2 mb-1">
-                            <div className="text-lg">{post.avatar}</div>
-                            <div className="flex-1">
-                              <p className="font-black text-xs text-cyan-400">{post.author}</p>
-                              <p className="text-xs text-gray-400">{post.city}</p>
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-300 mb-1">{post.tip}</p>
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <ThumbsUp className="w-3 h-3" />
-                            {post.likes}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Wallet Tab */}
-            <TabsContent value="wallet">
-              <Card className="bg-black/40 backdrop-blur-sm border-2 border-yellow-500/50">
-                <CardHeader className="p-3 border-b-2 border-yellow-500/30">
-                  <CardTitle className="flex items-center gap-2 text-base text-yellow-400 font-black">
-                    <Wallet className="w-5 h-5" />
-                    NFT PASSPORT
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  {!walletAddress ? (
-                    <div className="text-center space-y-3">
-                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full flex items-center justify-center border-4 border-yellow-400">
-                        <BadgeCheck className="w-8 h-8 text-black" />
-                      </div>
-                      
-                      <div>
-                        <p className="font-black text-sm text-yellow-400 mb-1">🌟 DIGITAL PASSPORT</p>
-                        <p className="text-xs text-gray-400 font-bold">Generate wallet to collect NFT badges</p>
-                      </div>
-
-                      <Button
-                        onClick={generateWallet}
-                        disabled={isConnecting || !xrplLoaded}
-                        className="w-full h-10 text-sm font-black bg-gradient-to-r from-yellow-500 to-orange-600"
+                        MISSION 2: CONVERTER
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-3">
+                      <motion.p 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-xs text-gray-400 text-center font-bold bg-purple-900/20 border border-purple-500/30 rounded-lg p-2 flex items-center justify-center gap-2"
                       >
-                        {isConnecting ? (
-                          <>
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                              className="inline-block mr-2"
-                            >
-                              <Zap className="w-4 h-4" />
-                            </motion.div>
-                            CREATING...
-                          </>
-                        ) : (
-                          <>
-                            <BadgeCheck className="w-4 h-4 mr-2" />
-                            CREATE PASSPORT ⚡
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="border-2 border-green-400 bg-green-900/30 rounded-xl p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-black text-green-400">ACTIVE</span>
-                          <span className="text-xs font-black text-green-400">● VERIFIED</span>
-                        </div>
-                        <div className="bg-black/70 p-2 rounded border border-green-500/50 mb-2">
-                          <p className="text-xs text-green-400 mb-1 font-bold">ADDRESS</p>
-                          <p className="text-green-300 font-mono text-xs break-all">{walletAddress}</p>
-                        </div>
-                        {walletSeed && (
-                          <div className="bg-black/70 p-2 rounded border border-yellow-500/50">
-                            <p className="text-xs text-yellow-400 mb-1 font-bold">🔑 SECRET (KEEP SAFE!)</p>
-                            <p className="text-yellow-300 font-mono text-xs break-all">{walletSeed}</p>
-                          </div>
-                        )}
+                        <motion.span
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        >
+                          🌍
+                        </motion.span>
+                        LIVE RATES API
+                      </motion.p>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Label className="text-purple-400 font-bold text-xs mb-1">HOME CURRENCY</Label>
+                          <Select value={localCurrency} onValueChange={setLocalCurrency}>
+                            <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-10 font-bold text-sm hover:border-purple-400 transition-all">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-black border-2 border-purple-500">
+                              {Object.entries(CURRENCY_RATES)
+                                .filter(([code]) => code !== 'EUR')
+                                .map(([code, data]) => (
+                                  <SelectItem key={code} value={code} className="text-purple-100 font-bold text-sm">
+                                    <motion.span
+                                      whileHover={{ scale: 1.3, rotate: 10 }}
+                                      className="inline-block mr-1"
+                                    >
+                                      {data.flag}
+                                    </motion.span>
+                                    {code}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </motion.div>
+
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Label className="text-pink-400 font-bold text-xs mb-1">AMOUNT</Label>
+                          <Input
+                            type="number"
+                            placeholder={localCurrency === 'MGA' ? '100000' : '1000'}
+                            value={localAmount}
+                            onChange={(e) => setLocalAmount(e.target.value)}
+                            className="border-2 border-pink-500/50 bg-black/50 text-pink-100 h-10 text-sm font-bold hover:border-pink-400 focus:border-pink-400 transition-all"
+                          />
+                        </motion.div>
                       </div>
 
-                      <div className="border-2 border-purple-400 bg-purple-900/30 rounded-xl p-3">
-                        <h3 className="text-xs font-black text-purple-400 mb-2">BADGE COLLECTION</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                          {missions.map((mission) => (
-                            <div
-                              key={mission.id}
-                              className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center p-2 ${
-                                mintedNFTs[mission.nftType]
-                                  ? 'border-cyan-400 bg-cyan-900/30'
-                                  : 'border-gray-700 bg-gray-900/30'
-                              }`}
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
+                        <Button 
+                          onClick={fetchRealExchangeRate}
+                          disabled={isLoadingRate || !localAmount}
+                          className="w-full h-10 text-sm font-black bg-gradient-to-r from-purple-500 to-pink-600 hover:shadow-[0_0_20px_rgba(168,85,247,0.5)] transition-all"
+                        >
+                          {isLoadingRate ? (
+                            <>
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                className="inline-block mr-2"
+                              >
+                                <Zap className="w-4 h-4" />
+                              </motion.div>
+                              LOADING...
+                            </>
+                          ) : (
+                            <>
+                              <motion.div
+                                animate={{ x: [0, 5, 0] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                              >
+                                <Plane className="w-4 h-4 mr-2" />
+                              </motion.div>
+                              CONVERT → EUR ⚡
+                            </>
+                          )}
+                        </Button>
+                      </motion.div>
+
+                      <AnimatePresence mode="wait">
+                        {convertedEuro !== null && (
+                          <motion.div
+                            key="conversion-result"
+                            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                            className="border-2 border-purple-400 bg-purple-900/30 rounded-xl p-4"
+                          >
+                            <p className="text-xs font-bold text-purple-400 mb-2">RESULT</p>
+                            <motion.p 
+                              className="text-3xl font-black text-purple-400 mb-2"
+                              animate={{ scale: [1, 1.05, 1] }}
+                              transition={{ duration: 0.5 }}
                             >
-                              {mintedNFTs[mission.nftType] ? (
+                              <motion.span
+                                animate={{ rotate: [0, 5, -5, 0] }}
+                                transition={{ duration: 0.5 }}
+                                className="inline-block"
+                              >
+                                🇪🇺
+                              </motion.span>
+                              €{convertedEuro.toFixed(2)}
+                            </motion.p>
+                            <p className="text-xs text-gray-300 font-bold mb-2">
+                              <motion.span
+                                animate={{ scale: [1, 1.1, 1] }}
+                                transition={{ duration: 1, repeat: Infinity }}
+                                className="inline-block"
+                              >
+                                {CURRENCY_RATES[localCurrency].flag}
+                              </motion.span>
+                              {localAmount} {localCurrency} = €{convertedEuro.toFixed(2)}
+                            </p>
+                            {realExchangeRate && (
+                              <motion.p 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                                className="text-xs text-cyan-400 font-bold mb-2"
+                              >
+                                Rate: 1 {localCurrency} = €{realExchangeRate.toFixed(6)}
+                              </motion.p>
+                            )}
+                            <motion.div 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                              className="bg-cyan-900/20 border border-cyan-500/50 rounded-lg p-2"
+                            >
+                              <p className="text-xs text-gray-300">
+                                In <motion.span
+                                  animate={{ scale: [1, 1.1, 1] }}
+                                  transition={{ duration: 1, repeat: Infinity, delay: 0.5 }}
+                                  className="inline-block"
+                                >
+                                  {cityData.flag}
+                                </motion.span> {cityData.name}: <strong className="text-cyan-400">€{convertedEuro.toFixed(0)}</strong>
+                                {convertedEuro >= cityData.avgCost ? 
+                                  ` (${((convertedEuro / cityData.avgCost) * 100).toFixed(0)}% of avg cost!)` :
+                                  ` (need €${(cityData.avgCost - convertedEuro).toFixed(0)} more)`
+                                }
+                              </p>
+                            </motion.div>
+                            <motion.div 
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.4 }}
+                              className="mt-2 text-center"
+                            >
+                              <motion.span 
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full text-yellow-400 text-xs font-black"
+                                animate={{ 
+                                  boxShadow: [
+                                    '0 0 0px rgba(234, 179, 8, 0.5)',
+                                    '0 0 20px rgba(234, 179, 8, 0.8)',
+                                    '0 0 0px rgba(234, 179, 8, 0.5)'
+                                  ]
+                                }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                              >
+                                COMPLETE! ⚡
+                              </motion.span>
+                            </motion.div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
+
+              {/* Map Tab */}
+              <TabsContent value="map">
+                {converterUsed ? (
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                  >
+                    <Card className="bg-black/40 backdrop-blur-sm border-2 border-cyan-500/50 hover:shadow-[0_0_30px_rgba(0,255,255,0.3)] transition-all duration-300">
+                      <CardHeader className="p-3 border-b-2 border-cyan-500/30">
+                        <CardTitle className="flex items-center gap-2 text-base text-cyan-400 font-black">
+                          <motion.div
+                            animate={{ y: [0, -5, 0] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
+                            <Map className="w-5 h-5" />
+                          </motion.div>
+                          {cityData.name.toUpperCase()} 
+                          <motion.span
+                            animate={{ rotate: [0, 10, -10, 0] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="inline-block"
+                          >
+                            {cityData.flag}
+                          </motion.span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {[
+                            { icon: Coffee, label: 'MEALS', color: 'yellow' },
+                            { icon: HomeIcon, label: 'HOUSING', color: 'blue' },
+                            { icon: BookOpen, label: 'STUDY', color: 'green' }
+                          ].map((item, index) => (
+                            <motion.div
+                              key={item.label}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.1 }}
+                              whileHover={{ scale: 1.1 }}
+                              className={`px-2 py-1 bg-${item.color}-500/20 border border-${item.color}-500 rounded-full flex items-center gap-1 cursor-pointer`}
+                            >
+                              <item.icon className={`w-3 h-3 text-${item.color}-400`} />
+                              <span className={`text-${item.color}-400 text-xs font-bold`}>{item.label}</span>
+                            </motion.div>
+                          ))}
+                        </div>
+
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.2 }}
+                          className="h-64 rounded-xl overflow-hidden border-2 border-cyan-500/30"
+                        >
+                          {typeof window !== 'undefined' && (
+                            <MapContainer
+                              center={cityData.coords}
+                              zoom={13}
+                              style={{ height: '100%', width: '100%' }}
+                              className="z-0"
+                            >
+                              <TileLayer
+                                attribution='&copy; OpenStreetMap'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                              />
+                              {cityData.spots.map((spot) => (
+                                <Marker key={spot.id} position={spot.coords}>
+                                  <Popup>
+                                    <div className="font-bold text-xs">
+                                      {getMarkerIcon(spot.category)} {spot.name}
+                                    </div>
+                                    <div className="text-xs text-gray-700">{spot.description}</div>
+                                    <div className="text-xs font-bold text-green-600 mt-1">
+                                      💰 {spot.price}
+                                    </div>
+                                  </Popup>
+                                </Marker>
+                              ))}
+                            </MapContainer>
+                          )}
+                        </motion.div>
+
+                        <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                          {cityData.spots.map((spot, index) => (
+                            <motion.div 
+                              key={spot.id}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.1 }}
+                              whileHover={{ scale: 1.02, x: 5 }}
+                              className="bg-gray-900/50 border border-gray-700 rounded-lg p-2 hover:border-cyan-400 transition-all cursor-pointer"
+                            >
+                              <p className="text-cyan-400 font-bold text-xs mb-1">
+                                <motion.span
+                                  animate={{ scale: [1, 1.2, 1] }}
+                                  transition={{ duration: 1, repeat: Infinity, delay: index * 0.2 }}
+                                  className="inline-block"
+                                >
+                                  {getMarkerIcon(spot.category)}
+                                </motion.span> {spot.name}
+                              </p>
+                              <p className="text-xs text-gray-400">{spot.description}</p>
+                              <p className="text-xs text-green-400 font-bold mt-1">💰 {spot.price}</p>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <Card className="bg-black/40 backdrop-blur-sm border-2 border-gray-700">
+                      <CardContent className="p-8 text-center">
+                        <motion.div
+                          animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Lock className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                        </motion.div>
+                        <p className="text-gray-500 font-bold">Complete Mission 2 to unlock the map!</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </TabsContent>
+
+              {/* Goals Tab */}
+              <TabsContent value="goals">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                >
+                  <Card className="bg-black/40 backdrop-blur-sm border-2 border-pink-500/50 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] transition-all duration-300">
+                    <CardHeader className="p-3 border-b-2 border-pink-500/30">
+                      <CardTitle className="flex items-center gap-2 text-base text-pink-400 font-black">
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        >
+                          <Target className="w-5 h-5" />
+                        </motion.div>
+                        MISSION 3: GOALS
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-3">
+                      {goals.map((goal, index) => (
+                        <motion.div 
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          whileHover={{ scale: 1.02 }}
+                        >
+                          <Label className="text-pink-400 font-bold text-xs mb-1 flex items-center gap-1">
+                            <motion.span
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 2, repeat: Infinity, delay: index * 0.3 }}
+                            >
+                              🎯
+                            </motion.span>
+                            GOAL {index + 1}
+                          </Label>
+                          <Input
+                            placeholder={`e.g., ${['Save €100', 'Cut costs 20%', 'Find job'][index]}`}
+                            value={goal}
+                            onChange={(e) => {
+                              const newGoals = [...goals];
+                              newGoals[index] = e.target.value;
+                              setGoals(newGoals);
+                            }}
+                            className="border-2 border-pink-500/50 bg-black/50 text-pink-100 h-10 text-sm font-bold hover:border-pink-400 focus:border-pink-400 transition-all"
+                            disabled={goalsSet}
+                          />
+                        </motion.div>
+                      ))}
+                      
+                      {!goalsSet ? (
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
+                          <Button 
+                            onClick={handleSetGoals}
+                            className="w-full h-10 text-sm font-black bg-gradient-to-r from-pink-500 to-orange-600 hover:shadow-[0_0_20px_rgba(236,72,153,0.5)] transition-all"
+                          >
+                            <Target className="w-4 h-4 mr-2" />
+                            LOCK GOALS ⚡
+                          </Button>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                          className="border-2 border-pink-400 bg-pink-900/30 rounded-xl p-4 text-center"
+                        >
+                          <motion.p 
+                            className="text-2xl mb-2"
+                            animate={{ rotate: [0, 360] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
+                            🎯
+                          </motion.p>
+                          <p className="text-pink-400 font-black text-sm mb-2">GOALS ACTIVATED!</p>
+                          <motion.span 
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full text-yellow-400 text-xs font-black"
+                            animate={{ 
+                              boxShadow: [
+                                '0 0 0px rgba(234, 179, 8, 0.5)',
+                                '0 0 20px rgba(234, 179, 8, 0.8)',
+                                '0 0 0px rgba(234, 179, 8, 0.5)'
+                              ]
+                            }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            COMPLETE! ⚡
+                          </motion.span>
+                        </motion.div>
+                      )}
+
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="border-2 border-purple-400 bg-purple-900/20 rounded-xl p-3 mt-4"
+                      >
+                        <h3 className="text-xs font-black text-purple-400 mb-2 flex items-center gap-1">
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            <MessageCircle className="w-3 h-3" />
+                          </motion.div>
+                          COMMUNITY TIPS
+                        </h3>
+                        <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                          {COMMUNITY_POSTS.map((post, index) => (
+                            <motion.div 
+                              key={post.id}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.1 }}
+                              whileHover={{ scale: 1.02, x: 5 }}
+                              className="border border-gray-700 bg-gray-900/50 rounded-lg p-2 hover:border-cyan-400 transition-all cursor-pointer"
+                            >
+                              <div className="flex items-start gap-2 mb-1">
+                                <motion.div 
+                                  className="text-lg"
+                                  animate={{ rotate: [0, 10, -10, 0] }}
+                                  transition={{ duration: 2, repeat: Infinity, delay: index * 0.3 }}
+                                >
+                                  {post.avatar}
+                                </motion.div>
+                                <div className="flex-1">
+                                  <p className="font-black text-xs text-cyan-400">{post.author}</p>
+                                  <p className="text-xs text-gray-400">{post.city}</p>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-300 mb-1">{post.tip}</p>
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <motion.div whileHover={{ scale: 1.3 }}>
+                                  <ThumbsUp className="w-3 h-3" />
+                                </motion.div>
+                                {post.likes}
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
+
+              {/* Wallet Tab */}
+              <TabsContent value="wallet">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                >
+                  <Card className="bg-black/40 backdrop-blur-sm border-2 border-yellow-500/50 hover:shadow-[0_0_30px_rgba(234,179,8,0.3)] transition-all duration-300">
+                    <CardHeader className="p-3 border-b-2 border-yellow-500/30">
+                      <CardTitle className="flex items-center gap-2 text-base text-yellow-400 font-black">
+                        <motion.div
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Wallet className="w-5 h-5" />
+                        </motion.div>
+                        NFT PASSPORT
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      {!walletAddress ? (
+                        <div className="text-center space-y-3">
+                          <motion.div 
+                            className="w-16 h-16 mx-auto bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full flex items-center justify-center border-4 border-yellow-400"
+                            animate={{ 
+                              rotate: 360,
+                              scale: [1, 1.1, 1]
+                            }}
+                            transition={{ 
+                              rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+                              scale: { duration: 2, repeat: Infinity }
+                            }}
+                          >
+                            <BadgeCheck className="w-8 h-8 text-black" />
+                          </motion.div>
+                          
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            <p className="font-black text-sm text-yellow-400 mb-1 flex items-center justify-center gap-1">
+                              <motion.span
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 3, repeat: Infinity }}
+                              >
+                                🌟
+                              </motion.span>
+                              DIGITAL PASSPORT
+                            </p>
+                            <p className="text-xs text-gray-400 font-bold">Generate wallet to collect NFT badges</p>
+                          </motion.div>
+
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                              onClick={generateWallet}
+                              disabled={isConnecting || !xrplLoaded}
+                              className="w-full h-10 text-sm font-black bg-gradient-to-r from-yellow-500 to-orange-600 hover:shadow-[0_0_20px_rgba(234,179,8,0.5)] transition-all"
+                            >
+                              {isConnecting ? (
                                 <>
-                                  <Award className="w-6 h-6 text-cyan-400 mb-1" />
-                                  <span className="text-cyan-400 text-xs font-black">L{mission.mission}</span>
-                                </>
-                              ) : mission.completed ? (
-                                <>
-                                  <mission.icon className="w-6 h-6 text-gray-500 mb-1" />
-                                  <Button
-                                    onClick={() => mintNFT(mission.nftType)}
-                                    disabled={currentlyMinting === mission.nftType}
-                                    className="w-full mt-1 h-6 text-xs font-bold bg-gradient-to-r from-cyan-500 to-purple-600"
+                                  <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    className="inline-block mr-2"
                                   >
-                                    {currentlyMinting === mission.nftType ? '...' : 'CLAIM'}
-                                  </Button>
+                                    <Zap className="w-4 h-4" />
+                                  </motion.div>
+                                  CREATING...
                                 </>
                               ) : (
                                 <>
-                                  <Lock className="w-6 h-6 text-gray-600 mb-1" />
-                                  <span className="text-gray-600 text-xs font-bold">Locked</span>
+                                  <BadgeCheck className="w-4 h-4 mr-2" />
+                                  CREATE PASSPORT ⚡
                                 </>
                               )}
+                            </Button>
+                          </motion.div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="border-2 border-green-400 bg-green-900/30 rounded-xl p-3"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <motion.span 
+                                className="text-xs font-black text-green-400"
+                                animate={{ opacity: [1, 0.5, 1] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                              >
+                                ACTIVE
+                              </motion.span>
+                              <motion.span 
+                                className="text-xs font-black text-green-400 flex items-center gap-1"
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                              >
+                                ● VERIFIED
+                              </motion.span>
                             </div>
-                          ))}
-                        </div>
-                        <div className="text-center mt-2">
-                          <span className="text-xs font-black text-purple-400">
-                            {Object.values(mintedNFTs).filter(Boolean).length}/4 COLLECTED ⚡
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                            <div className="bg-black/70 p-2 rounded border border-green-500/50 mb-2">
+                              <p className="text-xs text-green-400 mb-1 font-bold">ADDRESS</p>
+                              <p className="text-green-300 font-mono text-xs break-all">{walletAddress}</p>
+                            </div>
+                            {walletSeed && (
+                              <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="bg-black/70 p-2 rounded border border-yellow-500/50"
+                              >
+                                <p className="text-xs text-yellow-400 mb-1 font-bold flex items-center gap-1">
+                                  <motion.span
+                                    animate={{ rotate: [0, -10, 10, 0] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                  >
+                                    🔑
+                                  </motion.span>
+                                  SECRET (KEEP SAFE!)
+                                </p>
+                                <p className="text-yellow-300 font-mono text-xs break-all">{walletSeed}</p>
+                              </motion.div>
+                            )}
+                          </motion.div>
 
-            {/* XRPL Tab */}
-            <TabsContent value="xrpl">
-              {walletAddress && converterUsed ? (
-                <Card className="bg-black/40 backdrop-blur-sm border-2 border-yellow-500/50">
-                  <CardHeader className="p-3 border-b-2 border-yellow-500/30">
-                    <CardTitle className="flex items-center gap-2 text-base text-yellow-400 font-black">
-                      <Send className="w-5 h-5" />
-                      MISSION 4: XRPL PAYMENT
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-3">
-                      <p className="text-yellow-400 text-xs font-bold mb-2">
-                        SIMULATE CROSS-BORDER PAYMENT
-                      </p>
-                      <p className="text-gray-300 text-xs mb-2">
-                        Experience blockchain payments! Send 1 XRP to demo international transfers.
-                      </p>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="bg-black/50 p-2 rounded">
-                          <p className="text-gray-400 mb-1">FROM</p>
-                          <p className="text-cyan-400 font-bold">{localCurrency} {CURRENCY_RATES[localCurrency].flag}</p>
+                          <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="border-2 border-purple-400 bg-purple-900/30 rounded-xl p-3"
+                          >
+                            <h3 className="text-xs font-black text-purple-400 mb-2 flex items-center gap-1">
+                              <motion.span
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                              >
+                                🏆
+                              </motion.span>
+                              BADGE COLLECTION
+                            </h3>
+                            <div className="grid grid-cols-2 gap-2">
+                              {missions.map((mission, index) => (
+                                <motion.div
+                                  key={mission.id}
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: index * 0.1 }}
+                                  whileHover={{ scale: 1.05 }}
+                                  className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center p-2 transition-all ${
+                                    mintedNFTs[mission.nftType]
+                                      ? 'border-cyan-400 bg-cyan-900/30'
+                                      : 'border-gray-700 bg-gray-900/30'
+                                  }`}
+                                >
+                                  {mintedNFTs[mission.nftType] ? (
+                                    <>
+                                      <motion.div
+                                        animate={{ 
+                                          rotate: 360,
+                                          scale: [1, 1.2, 1]
+                                        }}
+                                        transition={{ 
+                                          rotate: { duration: 3, repeat: Infinity, ease: "linear" },
+                                          scale: { duration: 1.5, repeat: Infinity }
+                                        }}
+                                      >
+                                        <Award className="w-6 h-6 text-cyan-400 mb-1" />
+                                      </motion.div>
+                                      <span className="text-cyan-400 text-xs font-black">L{mission.mission}</span>
+                                    </>
+                                  ) : mission.completed ? (
+                                    <>
+                                      <mission.icon className="w-6 h-6 text-gray-500 mb-1" />
+                                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                        <Button
+                                          onClick={() => mintNFT(mission.nftType)}
+                                          disabled={currentlyMinting === mission.nftType}
+                                          className="w-full mt-1 h-6 text-xs font-bold bg-gradient-to-r from-cyan-500 to-purple-600"
+                                        >
+                                          {currentlyMinting === mission.nftType ? (
+                                            <motion.div
+                                              animate={{ rotate: 360 }}
+                                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                            >
+                                              <Zap className="w-3 h-3" />
+                                            </motion.div>
+                                          ) : 'CLAIM'}
+                                        </Button>
+                                      </motion.div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Lock className="w-6 h-6 text-gray-600 mb-1" />
+                                      <span className="text-gray-600 text-xs font-bold">Locked</span>
+                                    </>
+                                  )}
+                                </motion.div>
+                              ))}
+                            </div>
+                            <div className="text-center mt-2">
+                              <motion.span 
+                                className="text-xs font-black text-purple-400"
+                                animate={{ scale: [1, 1.05, 1] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                              >
+                                {Object.values(mintedNFTs).filter(Boolean).length}/4 COLLECTED ⚡
+                              </motion.span>
+                            </div>
+                          </motion.div>
                         </div>
-                        <div className="bg-black/50 p-2 rounded">
-                          <p className="text-gray-400 mb-1">TO</p>
-                          <p className="text-purple-400 font-bold">EUR 🇪🇺</p>
-                        </div>
-                      </div>
-                    </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
 
-                    {!xrplTransactionDone ? (
-                      <Button 
-                        onClick={simulateXRPLTransaction}
-                        disabled={isSimulatingTx}
-                        className="w-full h-10 text-sm font-black bg-gradient-to-r from-yellow-500 to-orange-600"
-                      >
-                        {isSimulatingTx ? (
-                          <>
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                              className="inline-block mr-2"
+              {/* XRPL Tab */}
+              <TabsContent value="xrpl">
+                {walletAddress && converterUsed ? (
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                  >
+                    <Card className="bg-black/40 backdrop-blur-sm border-2 border-yellow-500/50 hover:shadow-[0_0_30px_rgba(234,179,8,0.3)] transition-all duration-300">
+                      <CardHeader className="p-3 border-b-2 border-yellow-500/30">
+                        <CardTitle className="flex items-center gap-2 text-base text-yellow-400 font-black">
+                          <motion.div
+                            animate={{ x: [0, 5, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            <Send className="w-5 h-5" />
+                          </motion.div>
+                          MISSION 4: XRPL PAYMENT
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 space-y-3">
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-3"
+                        >
+                          <p className="text-yellow-400 text-xs font-bold mb-2 flex items-center gap-1">
+                            <motion.span
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
                             >
-                              <Zap className="w-4 h-4" />
-                            </motion.div>
-                            SIMULATING...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4 mr-2" />
-                            SIMULATE PAYMENT ⚡
-                          </>
-                        )}
-                      </Button>
-                    ) : (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="border-2 border-green-400 bg-green-900/30 rounded-xl p-4"
-                      >
-                        <div className="text-center mb-2">
-                          <div className="text-4xl mb-2">✅</div>
-                          <p className="text-green-400 font-black text-sm mb-2">SUCCESS!</p>
-                          <p className="text-xs text-gray-300 mb-2">
-                            Payment processed on XRPL Testnet
+                              ⚡
+                            </motion.span>
+                            SIMULATE CROSS-BORDER PAYMENT
                           </p>
-                        </div>
-                        
-                        {txHash && (
-                          <div className="bg-black/50 p-2 rounded border border-green-500/50 mb-2">
-                            <p className="text-xs text-green-400 mb-1 font-bold">TX HASH</p>
-                            <p className="text-green-300 font-mono text-xs break-all">{txHash}</p>
+                          <p className="text-gray-300 text-xs mb-2">
+                            Experience blockchain payments! Send 1 XRP to demo international transfers.
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <motion.div 
+                              whileHover={{ scale: 1.05 }}
+                              className="bg-black/50 p-2 rounded"
+                            >
+                              <p className="text-gray-400 mb-1">FROM</p>
+                              <p className="text-cyan-400 font-bold flex items-center gap-1">
+                                {localCurrency} 
+                                <motion.span
+                                  animate={{ rotate: [0, 10, -10, 0] }}
+                                  transition={{ duration: 2, repeat: Infinity }}
+                                >
+                                  {CURRENCY_RATES[localCurrency].flag}
+                                </motion.span>
+                              </p>
+                            </motion.div>
+                            <motion.div 
+                              whileHover={{ scale: 1.05 }}
+                              className="bg-black/50 p-2 rounded"
+                            >
+                              <p className="text-gray-400 mb-1">TO</p>
+                              <p className="text-purple-400 font-bold flex items-center gap-1">
+                                EUR 
+                                <motion.span
+                                  animate={{ rotate: [0, -10, 10, 0] }}
+                                  transition={{ duration: 2, repeat: Infinity }}
+                                >
+                                  🇪🇺
+                                </motion.span>
+                              </p>
+                            </motion.div>
                           </div>
+                        </motion.div>
+
+                        {!xrplTransactionDone ? (
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
+                            <Button 
+                              onClick={simulateXRPLTransaction}
+                              disabled={isSimulatingTx}
+                              className="w-full h-10 text-sm font-black bg-gradient-to-r from-yellow-500 to-orange-600 hover:shadow-[0_0_20px_rgba(234,179,8,0.5)] transition-all"
+                            >
+                              {isSimulatingTx ? (
+                                <>
+                                  <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    className="inline-block mr-2"
+                                  >
+                                    <Zap className="w-4 h-4" />
+                                  </motion.div>
+                                  SIMULATING...
+                                </>
+                              ) : (
+                                <>
+                                  <Send className="w-4 h-4 mr-2" />
+                                  SIMULATE PAYMENT ⚡
+                                </>
+                              )}
+                            </Button>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                            className="border-2 border-green-400 bg-green-900/30 rounded-xl p-4"
+                          >
+                            <div className="text-center mb-2">
+                              <motion.div 
+                                className="text-4xl mb-2"
+                                animate={{ scale: [1, 1.2, 1], rotate: [0, 360] }}
+                                transition={{ duration: 1 }}
+                              >
+                                ✅
+                              </motion.div>
+                              <p className="text-green-400 font-black text-sm mb-2">SUCCESS!</p>
+                              <p className="text-xs text-gray-300 mb-2">
+                                Payment processed on XRPL Testnet
+                              </p>
+                            </div>
+                            
+                            {txHash && (
+                              <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="bg-black/50 p-2 rounded border border-green-500/50 mb-2"
+                              >
+                                <p className="text-xs text-green-400 mb-1 font-bold">TX HASH</p>
+                                <p className="text-green-300 font-mono text-xs break-all">{txHash}</p>
+                              </motion.div>
+                            )}
+
+                            <motion.div 
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.3 }}
+                              className="text-center"
+                            >
+                              <motion.span 
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full text-yellow-400 text-xs font-black"
+                                animate={{ 
+                                  boxShadow: [
+                                    '0 0 0px rgba(234, 179, 8, 0.5)',
+                                    '0 0 20px rgba(234, 179, 8, 0.8)',
+                                    '0 0 0px rgba(234, 179, 8, 0.5)'
+                                  ]
+                                }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                              >
+                                COMPLETE! ⚡
+                              </motion.span>
+                            </motion.div>
+                          </motion.div>
                         )}
 
-                        <div className="text-center">
-                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-500/20 border border-yellow-500 rounded-full text-yellow-400 text-xs font-black">
-                            COMPLETE! ⚡
-                          </span>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    <p className="text-xs text-center text-gray-500 font-bold">
-                      🎮 TESTNET ONLY • EDUCATIONAL
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="bg-black/40 backdrop-blur-sm border-2 border-gray-700">
-                  <CardContent className="p-8 text-center">
-                    <Lock className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-500 font-bold mb-2">Complete Mission 2 and create wallet first!</p>
-                    <p className="text-xs text-gray-600">You need to convert currency and have a wallet</p>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-          </Tabs>
+                        <motion.p 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.5 }}
+                          className="text-xs text-center text-gray-500 font-bold flex items-center justify-center gap-1"
+                        >
+                          <motion.span
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            🎮
+                          </motion.span>
+                          TESTNET ONLY • EDUCATIONAL
+                        </motion.p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <Card className="bg-black/40 backdrop-blur-sm border-2 border-gray-700">
+                      <CardContent className="p-8 text-center">
+                        <motion.div
+                          animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Lock className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                        </motion.div>
+                        <p className="text-gray-500 font-bold mb-2">Complete Mission 2 and create wallet first!</p>
+                        <p className="text-xs text-gray-600">You need to convert currency and have a wallet</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </motion.div>
 
           {/* Footer */}
           <motion.div
@@ -1387,9 +1937,25 @@ export default function Home() {
             transition={{ delay: 0.5 }}
             className="mt-4 text-center"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/20 border border-cyan-500 rounded-full">
-              <span className="text-cyan-400 text-xs font-black">🎮 XRP TESTNET • EDU USE ⚡</span>
-            </div>
+            <motion.div 
+              className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/20 border border-cyan-500 rounded-full"
+              animate={{ 
+                boxShadow: [
+                  '0 0 0px rgba(0, 255, 255, 0.5)',
+                  '0 0 15px rgba(0, 255, 255, 0.8)',
+                  '0 0 0px rgba(0, 255, 255, 0.5)'
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <motion.span 
+                className="text-cyan-400 text-xs font-black"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                🎮 XRP TESTNET • EDU USE ⚡
+              </motion.span>
+            </motion.div>
           </motion.div>
         </div>
       </div>
