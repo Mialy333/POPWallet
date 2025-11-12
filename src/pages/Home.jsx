@@ -847,7 +847,7 @@ export default function Home() {
                   STUDY CITY
                 </Label>
                 <Select value={selectedCity} onValueChange={handleCityChange}>
-                  <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-10 font-bold text-sm hover:border-purple-400 transition-all">
+                  <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-10 font-bold text-sm hover:border-purple-400 focus:border-purple-400 transition-all">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-black border-2 border-purple-500">
@@ -1087,7 +1087,7 @@ export default function Home() {
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <Label className="text-purple-400 font-bold text-xs mb-1">HOME CURRENCY</Label>
                           <Select value={localCurrency} onValueChange={setLocalCurrency}>
-                            <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-10 font-bold text-sm hover:border-purple-400 transition-all">
+                            <SelectTrigger className="border-2 border-purple-500/50 bg-black/50 text-purple-100 h-10 font-bold text-sm hover:border-purple-400 focus:border-purple-400 transition-all">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-black border-2 border-purple-500">
@@ -1095,15 +1095,7 @@ export default function Home() {
                                 .filter(([code]) => code !== 'EUR')
                                 .map(([code, data]) => (
                                   <SelectItem key={code} value={code} className="text-purple-100 font-bold text-sm">
-                                    <span className="flex items-center gap-2">
-                                      <motion.span
-                                        whileHover={{ scale: 1.3, rotate: 10 }}
-                                        className="inline-block"
-                                      >
-                                        {data.flag}
-                                      </motion.span>
-                                      <span>{code} - {data.name}</span>
-                                    </span>
+                                    {data.flag} {code} - {data.name}
                                   </SelectItem>
                                 ))}
                             </SelectContent>
@@ -1907,24 +1899,6 @@ export default function Home() {
                           </motion.span>
                           TESTNET ONLY • EDUCATIONAL
                         </motion.p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                  >
-                    <Card className="bg-black/40 backdrop-blur-sm border-2 border-gray-700">
-                      <CardContent className="p-8 text-center">
-                        <motion.div
-                          animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Lock className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                        </motion.div>
-                        <p className="text-gray-500 font-bold mb-2">Complete Mission 2 and create wallet first!</p>
-                        <p className="text-xs text-gray-600">You need to convert currency and have a wallet</p>
                       </CardContent>
                     </Card>
                   </motion.div>
