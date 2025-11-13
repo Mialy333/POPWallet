@@ -25,12 +25,10 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogout = () => {
-    // Clear any browser storage
     if (typeof window !== 'undefined') {
       localStorage.clear();
       sessionStorage.clear();
     }
-    // Logout and redirect (this will reload the page and clear all state)
     base44.auth.logout();
   };
 
@@ -39,35 +37,96 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-900 to-blue-900">
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        .retro-text {
+          font-family: 'Press Start 2P', cursive;
+          text-shadow: 
+            3px 3px 0px #FF1744,
+            6px 6px 0px #FFD600,
+            9px 9px 0px #00E676;
+        }
+        
+        .pixel-border {
+          box-shadow: 
+            0 0 0 2px #000,
+            0 0 0 4px #FFF,
+            0 0 0 6px #FF1744,
+            0 0 20px rgba(255, 23, 68, 0.5);
+        }
+        
+        .retro-glow {
+          animation: retro-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes retro-pulse {
+          0%, 100% { 
+            box-shadow: 0 0 10px #FF1744, 0 0 20px #FFD600, 0 0 30px #00E676;
+          }
+          50% { 
+            box-shadow: 0 0 20px #FF1744, 0 0 40px #FFD600, 0 0 60px #00E676;
+          }
+        }
+        
+        @keyframes pixel-blink {
+          0%, 49% { opacity: 1; }
+          50%, 100% { opacity: 0.3; }
+        }
+        
+        .pixel-grid {
+          background-image: 
+            linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+          background-size: 20px 20px;
+        }
+      `}</style>
+
       {/* Navigation Bar */}
       <motion.nav 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b-2 border-cyan-500/30"
+        className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-b-4 border-yellow-400 pixel-grid"
       >
-        <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to={createPageUrl('Home')}>
               <motion.div 
-                className="flex items-center gap-2"
+                className="flex items-center gap-3"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <span className="text-2xl">🎒</span>
-                <h1 
-                  className="text-2xl font-black tracking-wider"
-                  style={{
-                    fontFamily: 'Arial Black, sans-serif',
-                    background: 'linear-gradient(45deg, #00ffff, #ff00ff, #ffff00)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
+                <motion.div
+                  animate={{ 
+                    rotate: [0, -10, 10, -10, 0],
+                    scale: [1, 1.1, 1]
                   }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatDelay: 3
+                  }}
+                  className="text-4xl"
                 >
-                  CAMPUSFi
-                </h1>
+                  💰
+                </motion.div>
+                <div>
+                  <h1 
+                    className="text-2xl font-black tracking-wider retro-text"
+                    style={{
+                      fontFamily: "'Press Start 2P', cursive",
+                      color: '#FFD600',
+                      textShadow: '3px 3px 0px #FF1744'
+                    }}
+                  >
+                    POP
+                  </h1>
+                  <p className="text-xs font-bold text-cyan-400" style={{ fontFamily: 'monospace', letterSpacing: '2px' }}>
+                    WALLET
+                  </p>
+                </div>
               </motion.div>
             </Link>
 
@@ -75,31 +134,33 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-2">
               <Link to={createPageUrl('Home')}>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-none font-bold text-sm transition-all border-4 ${
                     currentPageName === 'Home'
-                      ? 'bg-cyan-500/20 text-cyan-400 border-2 border-cyan-500'
-                      : 'bg-gray-900/50 text-gray-400 border-2 border-gray-700 hover:border-cyan-500 hover:text-cyan-400'
+                      ? 'bg-yellow-400 text-black border-yellow-600 shadow-lg shadow-yellow-400/50'
+                      : 'bg-red-500 text-white border-red-700 hover:bg-red-400'
                   }`}
+                  style={{ fontFamily: 'monospace' }}
                 >
                   <Home className="w-4 h-4" />
-                  <span className="hidden md:inline">Missions</span>
+                  <span className="hidden md:inline">PLAY</span>
                 </motion.button>
               </Link>
 
               <Link to={createPageUrl('Onboarding')}>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-none font-bold text-sm transition-all border-4 ${
                     currentPageName === 'Onboarding'
-                      ? 'bg-purple-500/20 text-purple-400 border-2 border-purple-500'
-                      : 'bg-gray-900/50 text-gray-400 border-2 border-gray-700 hover:border-purple-500 hover:text-purple-400'
+                      ? 'bg-yellow-400 text-black border-yellow-600 shadow-lg shadow-yellow-400/50'
+                      : 'bg-blue-500 text-white border-blue-700 hover:bg-blue-400'
                   }`}
+                  style={{ fontFamily: 'monospace' }}
                 >
                   <BookOpen className="w-4 h-4" />
-                  <span className="hidden md:inline">Tutorial</span>
+                  <span className="hidden md:inline">GUIDE</span>
                 </motion.button>
               </Link>
 
@@ -107,23 +168,25 @@ export default function Layout({ children, currentPageName }) {
                 <>
                   {isAuthenticated ? (
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={handleLogout}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm bg-red-900/50 text-red-400 border-2 border-red-700 hover:border-red-500 transition-all"
+                      className="flex items-center gap-2 px-4 py-2 rounded-none font-bold text-sm bg-red-600 text-white border-4 border-red-800 hover:bg-red-500 transition-all"
+                      style={{ fontFamily: 'monospace' }}
                     >
                       <LogOut className="w-4 h-4" />
-                      <span className="hidden md:inline">Logout</span>
+                      <span className="hidden md:inline">EXIT</span>
                     </motion.button>
                   ) : (
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={handleLogin}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm bg-green-900/50 text-green-400 border-2 border-green-700 hover:border-green-500 transition-all"
+                      className="flex items-center gap-2 px-4 py-2 rounded-none font-bold text-sm bg-green-500 text-white border-4 border-green-700 hover:bg-green-400 transition-all"
+                      style={{ fontFamily: 'monospace' }}
                     >
                       <LogIn className="w-4 h-4" />
-                      <span className="hidden md:inline">Login</span>
+                      <span className="hidden md:inline">START</span>
                     </motion.button>
                   )}
                 </>
@@ -133,17 +196,37 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </motion.nav>
 
-      {/* Page Content with top padding for fixed nav */}
-      <div className="pt-16">
+      {/* Page Content */}
+      <div className="pt-20">
         {children}
       </div>
 
-      <style jsx>{`
-        @keyframes neon-glow {
-          0%, 100% { filter: drop-shadow(0 0 2px #00ffff) drop-shadow(0 0 4px #00ffff); }
-          50% { filter: drop-shadow(0 0 4px #00ffff) drop-shadow(0 0 8px #ff00ff); }
-        }
-      `}</style>
+      {/* Retro Footer Badge */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="fixed bottom-4 right-4 z-40"
+      >
+        <motion.div
+          animate={{ 
+            scale: [1, 1.1, 1],
+            rotate: [0, 5, -5, 0]
+          }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 text-white px-4 py-2 border-4 border-black shadow-lg"
+          style={{ fontFamily: 'monospace' }}
+        >
+          <div className="flex items-center gap-2">
+            <motion.span
+              animate={{ opacity: [1, 0.5, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            >
+              🎮
+            </motion.span>
+            <span className="text-xs font-black">RETRO MODE</span>
+          </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

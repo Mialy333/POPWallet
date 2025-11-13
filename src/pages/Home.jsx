@@ -356,7 +356,7 @@ export default function Home() {
         Memos: [
           {
             Memo: {
-              MemoType: window.xrpl.convertStringToHex('CampusFi'),
+              MemoType: window.xrpl.convertStringToHex('POP Wallet'),
               MemoData: window.xrpl.convertStringToHex(`Cross-border payment simulation - ${localCurrency} to EUR`)
             }
           }
@@ -499,7 +499,7 @@ export default function Home() {
       description: 'Save at least €50',
       completed: balance !== null && balance > 50,
       icon: Trophy,
-      color: 'cyan',
+      color: 'yellow',
       nftType: 'smartSaver',
       mission: 1
     },
@@ -509,7 +509,7 @@ export default function Home() {
       description: 'Convert your local currency',
       completed: converterUsed && convertedEuro !== null,
       icon: Globe,
-      color: 'purple',
+      color: 'orange',
       nftType: 'explorer',
       mission: 2
     },
@@ -519,7 +519,7 @@ export default function Home() {
       description: 'Set 3 monthly goals',
       completed: goalsSet,
       icon: Target,
-      color: 'pink',
+      color: 'red',
       nftType: 'planner',
       mission: 3
     },
@@ -529,7 +529,7 @@ export default function Home() {
       description: 'Complete XRPL transaction',
       completed: xrplTransactionDone,
       icon: Send,
-      color: 'yellow',
+      color: 'blue',
       nftType: 'budgetExplorer',
       mission: 4
     }
@@ -539,32 +539,90 @@ export default function Home() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center">
         <div className="text-center">
           <motion.div
-            animate={{ rotate: 360 }}
+            animate={{ 
+              rotate: 360,
+              scale: [1, 1.2, 1]
+            }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="inline-block mb-4"
+            className="inline-block mb-4 text-6xl"
           >
-            <Zap className="w-12 h-12 text-cyan-400" />
+            💰
           </motion.div>
-          <p className="text-cyan-400 font-black text-xl tracking-wider">LOADING CAMPUSFI...</p>
+          <p className="text-yellow-400 font-black text-xl tracking-wider" style={{ fontFamily: 'monospace' }}>
+            LOADING POP WALLET...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-black">
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px',
-          animation: 'grid-move 20s linear infinite'
-        }}></div>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-b from-purple-900 via-indigo-900 to-blue-900">
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        .pixel-grid {
+          background-image: 
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+          background-size: 20px 20px;
+        }
+        
+        .retro-shadow {
+          box-shadow: 
+            4px 4px 0px rgba(0, 0, 0, 0.5),
+            8px 8px 0px rgba(255, 215, 0, 0.3);
+        }
+        
+        @keyframes float-coins {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.5);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #FFD600, #FF1744);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #FFE44D, #FF4569);
+        }
+      `}</style>
+
+      {/* Floating Retro Elements */}
+      <div className="absolute inset-0 pixel-grid opacity-50"></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-4xl"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`
+            }}
+            animate={{
+              y: [0, -30, 0],
+              rotate: [0, 360],
+              opacity: [0.2, 0.5, 0.2]
+            }}
+            transition={{
+              duration: 4 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2
+            }}
+          >
+            {['💰', '🎮', '⭐', '🏆', '💎', '🎯', '🚀'][i % 7]}
+          </motion.div>
+        ))}
       </div>
 
       <AnimatePresence>
@@ -573,7 +631,7 @@ export default function Home() {
             {[...Array(50)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute text-2xl"
+                className="absolute text-3xl"
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: '-10%'
@@ -586,33 +644,12 @@ export default function Home() {
                 }}
                 transition={{ duration: Math.random() * 2 + 2, delay: Math.random() * 0.5 }}
               >
-                {['⭐', '💎', '🎮', '🏆', '💰', '✈️', '🌍', '🎓'][Math.floor(Math.random() * 8)]}
+                {['⭐', '💎', '🎮', '🏆', '💰', '🎯', '🚀', '👾'][Math.floor(Math.random() * 8)]}
               </motion.div>
             ))}
           </div>
         )}
       </AnimatePresence>
-
-      <style jsx>{`
-        @keyframes grid-move {
-          0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
-          100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.5);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(0, 255, 255, 0.5);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(0, 255, 255, 0.8);
-        }
-      `}</style>
 
       <div className="relative z-10 p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
@@ -620,18 +657,17 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, type: "spring" }}
-            className="text-center mb-4"
+            className="text-center mb-6"
           >
             <motion.h1 
-              className="text-3xl md:text-5xl font-black mb-2 tracking-wider"
+              className="text-4xl md:text-6xl font-black mb-3 tracking-wider"
               style={{
-                fontFamily: 'Arial Black, sans-serif',
-                background: 'linear-gradient(45deg, #00ffff, #ff00ff, #ffff00)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                fontFamily: "'Press Start 2P', cursive",
+                color: '#FFD600',
+                textShadow: '4px 4px 0px #FF1744, 8px 8px 0px #000'
               }}
               animate={{ 
-                scale: [1, 1.02, 1],
+                scale: [1, 1.05, 1],
               }}
               transition={{ 
                 duration: 2, 
@@ -639,7 +675,7 @@ export default function Home() {
                 ease: "easeInOut"
               }}
             >
-              CAMPUSFi
+              POP WALLET
             </motion.h1>
             
             {user && (
@@ -647,15 +683,16 @@ export default function Home() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-cyan-400 font-bold text-sm"
+                className="text-yellow-300 font-bold text-sm bg-black/50 inline-block px-4 py-2 border-4 border-yellow-500 retro-shadow"
+                style={{ fontFamily: 'monospace' }}
               >
-                Welcome, <span className="text-pink-400">{user.full_name || 'Explorer'}</span>! 
+                PLAYER: <span className="text-red-400">{user.full_name || 'HERO'}</span>
                 <motion.span
-                  animate={{ rotate: [0, 14, -8, 14, 0] }}
+                  animate={{ scale: [1, 1.3, 1] }}
                   transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-                  className="inline-block ml-1"
+                  className="inline-block ml-2"
                 >
-                  🚀
+                  🎮
                 </motion.span>
               </motion.p>
             )}
@@ -669,8 +706,8 @@ export default function Home() {
                 exit={{ opacity: 0, y: -20 }}
                 className="mb-4"
               >
-                <Alert className="bg-red-900/50 border-2 border-red-500">
-                  <AlertDescription className="text-red-200 font-bold text-sm">
+                <Alert className="bg-red-600 border-4 border-red-800 retro-shadow">
+                  <AlertDescription className="text-white font-bold text-sm" style={{ fontFamily: 'monospace' }}>
                     ⚠️ {error}
                   </AlertDescription>
                 </Alert>
@@ -692,28 +729,28 @@ export default function Home() {
             transition={{ delay: 0.4 }}
           >
             <Tabs defaultValue="budget" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-gray-900/50 border-2 border-cyan-500/30 mb-4">
-                <TabsTrigger value="budget" className="text-xs font-bold data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 transition-all">
+              <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-black/80 border-4 border-yellow-400 mb-4 retro-shadow" style={{ fontFamily: 'monospace' }}>
+                <TabsTrigger value="budget" className="text-xs font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-black transition-all border-r-2 border-yellow-600">
                   <Coins className="w-3 h-3 mr-1" />
-                  Budget
+                  BUDGET
                 </TabsTrigger>
-                <TabsTrigger value="convert" className="text-xs font-bold data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 transition-all">
+                <TabsTrigger value="convert" className="text-xs font-bold data-[state=active]:bg-orange-400 data-[state=active]:text-black transition-all border-r-2 border-yellow-600">
                   <Globe className="w-3 h-3 mr-1" />
-                  Convert
+                  CONVERT
                 </TabsTrigger>
-                <TabsTrigger value="map" className="text-xs font-bold data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400 transition-all">
+                <TabsTrigger value="map" className="text-xs font-bold data-[state=active]:bg-blue-400 data-[state=active]:text-black transition-all border-r-2 border-yellow-600">
                   <Map className="w-3 h-3 mr-1" />
-                  Map
+                  MAP
                 </TabsTrigger>
-                <TabsTrigger value="goals" className="text-xs font-bold data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400 transition-all">
+                <TabsTrigger value="goals" className="text-xs font-bold data-[state=active]:bg-red-400 data-[state=active]:text-black transition-all border-r-2 border-yellow-600">
                   <Target className="w-3 h-3 mr-1" />
-                  Goals
+                  GOALS
                 </TabsTrigger>
-                <TabsTrigger value="wallet" className="text-xs font-bold data-[state=active]:bg-yellow-500/20 data-[state=active]:text-yellow-400 transition-all">
+                <TabsTrigger value="wallet" className="text-xs font-bold data-[state=active]:bg-green-400 data-[state=active]:text-black transition-all border-r-2 border-yellow-600">
                   <Wallet className="w-3 h-3 mr-1" />
-                  Wallet
+                  WALLET
                 </TabsTrigger>
-                <TabsTrigger value="xrpl" className="text-xs font-bold data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400 transition-all">
+                <TabsTrigger value="xrpl" className="text-xs font-bold data-[state=active]:bg-pink-400 data-[state=active]:text-black transition-all">
                   <Send className="w-3 h-3 mr-1" />
                   XRPL
                 </TabsTrigger>
@@ -790,25 +827,22 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="mt-4 text-center"
+            className="mt-6 text-center"
           >
             <motion.div 
-              className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/20 border border-cyan-500 rounded-full"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 via-yellow-400 to-blue-500 border-4 border-black retro-shadow"
               animate={{ 
-                boxShadow: [
-                  '0 0 0px rgba(0, 255, 255, 0.5)',
-                  '0 0 15px rgba(0, 255, 255, 0.8)',
-                  '0 0 0px rgba(0, 255, 255, 0.5)'
-                ]
+                y: [0, -5, 0]
               }}
               transition={{ duration: 2, repeat: Infinity }}
+              style={{ fontFamily: 'monospace' }}
             >
               <motion.span 
-                className="text-cyan-400 text-xs font-black"
+                className="text-white text-xs font-black"
                 animate={{ opacity: [1, 0.5, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
-                🎮 XRP TESTNET • EDU USE ⚡
+                🎮 XRPL TESTNET • ARCADE MODE ⚡
               </motion.span>
             </motion.div>
           </motion.div>
