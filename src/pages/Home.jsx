@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
@@ -105,6 +106,7 @@ export default function Home() {
   
   const [walletAddress, setWalletAddress] = useState(null);
   const [walletSeed, setWalletSeed] = useState(null);
+  const [connectionMethod, setConnectionMethod] = useState(null); // 'generate', 'xaman', 'manual'
   const [isConnecting, setIsConnecting] = useState(false);
   const [xrplTransactionDone, setXrplTransactionDone] = useState(false);
   const [isSimulatingTx, setIsSimulatingTx] = useState(false);
@@ -147,6 +149,7 @@ export default function Home() {
       if (currentUser.goals_completed) setGoalsSet(true);
 
       if (currentUser.xrpl_wallet_address) setWalletAddress(currentUser.xrpl_wallet_address);
+      if (currentUser.wallet_connection_method) setConnectionMethod(currentUser.wallet_connection_method);
       
       if (currentUser.mission_explorer) {
         setConverterUsed(true);
@@ -307,14 +310,53 @@ export default function Home() {
       const wallet = window.xrpl.Wallet.generate();
       setWalletAddress(wallet.address);
       setWalletSeed(wallet.seed);
+      setConnectionMethod('generate');
       setError(null);
       
       await saveUserData({
-        xrpl_wallet_address: wallet.address
+        xrpl_wallet_address: wallet.address,
+        wallet_connection_method: 'generate'
       });
+      
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
       
     } catch (err) {
       setError('Failed to generate wallet: ' + err.message);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const connectXamanWallet = async (manualAddress = null) => {
+    try {
+      setIsConnecting(true);
+      setError(null);
+      
+      if (manualAddress) {
+        // Manual address entry
+        setWalletAddress(manualAddress);
+        setWalletSeed(null); // Clear seed if connecting manually
+        setConnectionMethod('manual');
+        
+        await saveUserData({
+          xrpl_wallet_address: manualAddress,
+          wallet_connection_method: 'manual'
+        });
+        
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      } else {
+        // XAMAN deep link integration
+        // In production, use XAMAN SDK or deep linking
+        // For now, show instructions
+        setError('XAMAN Integration: Please install XAMAN app and connect manually, or enter your XRP address in the manual input field.');
+        
+        setConnectionMethod('xaman');
+      }
+      
+    } catch (err) {
+      setError('Failed to connect XAMAN wallet: ' + err.message);
     } finally {
       setIsConnecting(false);
     }
@@ -326,8 +368,8 @@ export default function Home() {
       return;
     }
 
-    if (!walletSeed) {
-      setError('Please generate a wallet first or ensure your session is active');
+    if (!walletAddress) {
+      setError('Please connect your wallet first');
       return;
     }
 
@@ -335,48 +377,70 @@ export default function Home() {
       setIsSimulatingTx(true);
       setError(null);
 
-      const client = new window.xrpl.Client('wss://s.altnet.rippletest.net:51233');
+      // Determine if using testnet or mainnet
+      const useTestnet = connectionMethod === 'generate';
+      const networkUrl = useTestnet 
+        ? 'wss://s.altnet.rippletest.net:51233'
+        : 'wss://xrplcluster.com'; // Mainnet
+
+      const client = new window.xrpl.Client(networkUrl);
       await client.connect();
 
-      const wallet = window.xrpl.Wallet.fromSeed(walletSeed);
-      
-      try {
-        await client.fundWallet(wallet);
-      } catch (e) {
-        console.log('Wallet funding skipped or already funded (Testnet only)');
-      }
+      // For generated testnet wallets, we have the seed
+      if (walletSeed && useTestnet) {
+        const wallet = window.xrpl.Wallet.fromSeed(walletSeed);
+        
+        try {
+          await client.fundWallet(wallet); // Fund only works on testnet
+        } catch (e) {
+          console.log('Wallet funding skipped or already funded (Testnet only)');
+        }
 
-      const payment = {
-        TransactionType: 'Payment',
-        Account: wallet.address,
-        Amount: window.xrpl.xrpToDrops('1'),
-        Destination: 'rPEPPER7kfTD9w2To4CQk6UCfuHM9c6GDY',
-        Memos: [
-          {
-            Memo: {
-              MemoType: window.xrpl.convertStringToHex('POP Wallet'),
-              MemoData: window.xrpl.convertStringToHex(`Cross-border payment simulation - ${localCurrency} to EUR`)
+        const payment = {
+          TransactionType: 'Payment',
+          Account: wallet.address,
+          Amount: window.xrpl.xrpToDrops('1'),
+          Destination: 'rPEPPER7kfTD9w2To4CQk6UCfuHM9c6GDY',
+          Memos: [
+            {
+              Memo: {
+                MemoType: window.xrpl.convertStringToHex('POP Wallet'),
+                MemoData: window.xrpl.convertStringToHex(`Cross-border payment - ${localCurrency} to EUR`)
+              }
             }
-          }
-        ]
-      };
+          ]
+        };
 
-      const prepared = await client.autofill(payment);
-      const signed = wallet.sign(prepared);
-      const result = await client.submitAndWait(signed.tx_blob);
+        const prepared = await client.autofill(payment);
+        const signed = wallet.sign(prepared);
+        const result = await client.submitAndWait(signed.tx_blob);
 
-      if (result.result.meta.TransactionResult === 'tesSUCCESS') {
-        setXrplTransactionDone(true);
-        setTxHash(result.result.hash);
-        
-        await saveUserData({
-          mission_xrpl: true
-        });
-        
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 5000);
+        if (result.result.meta.TransactionResult === 'tesSUCCESS') {
+          setXrplTransactionDone(true);
+          setTxHash(result.result.hash);
+          
+          await saveUserData({
+            mission_xrpl: true
+          });
+          
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 5000);
+        } else {
+          setError('Transaction failed: ' + result.result.meta.TransactionResult);
+        }
       } else {
-        setError('Transaction failed: ' + result.result.meta.TransactionResult);
+        // For XAMAN or manual wallets, show instructions for manual signing or simulate
+        setError('💡 XAMAN/Manual Wallet Users: Transaction requires signing. Open XAMAN app or similar wallet to sign. Simulating completion for now...');
+        
+        // Simulate success for demonstration
+        setTimeout(async () => {
+          setXrplTransactionDone(true);
+          setTxHash('simulated-xaman-transaction');
+          await saveUserData({ mission_xrpl: true });
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 5000);
+          setError(null);
+        }, 2000);
       }
 
       await client.disconnect();
@@ -394,8 +458,8 @@ export default function Home() {
       return;
     }
 
-    if (!walletSeed) {
-      setError('Please generate a wallet first or ensure your session is active');
+    if (!walletAddress) {
+      setError('Please connect your wallet first');
       return;
     }
 
@@ -403,77 +467,105 @@ export default function Home() {
       setCurrentlyMinting(nftType);
       setError(null);
 
-      const client = new window.xrpl.Client('wss://s.altnet.rippletest.net:51233');
+      // Determine if using testnet or mainnet
+      const useTestnet = connectionMethod === 'generate';
+      const networkUrl = useTestnet 
+        ? 'wss://s.altnet.rippletest.net:51233'
+        : 'wss://xrplcluster.com';
+
+      const client = new window.xrpl.Client(networkUrl);
       await client.connect();
 
-      const wallet = window.xrpl.Wallet.fromSeed(walletSeed);
-      
-      try {
-        await client.fundWallet(wallet);
-      } catch (e) {
-        console.log('Wallet funding skipped or already funded (Testnet only)');
-      }
-
-      const nftData = {
-        smartSaver: {
-          name: '🏆 Smart Saver NFT',
-          description: `Achievement Unlocked: Saved €${balance?.toFixed(2) || '50+'} in monthly budget`,
-          level: 'LEVEL 1'
-        },
-        explorer: {
-          name: '🌍 Explorer NFT',
-          description: 'Achievement Unlocked: Mastered international currency conversion',
-          level: 'LEVEL 2'
-        },
-        planner: {
-          name: '🎯 Planner NFT',
-          description: 'Achievement Unlocked: Set strategic financial goals',
-          level: 'LEVEL 3'
-        },
-        budgetExplorer: {
-          name: '💎 Budget Explorer NFT',
-          description: 'Achievement Unlocked: Completed cross-border payment simulation',
-          level: 'LEVEL 4'
+      // Only proceed with full minting if we have the seed (testnet)
+      if (walletSeed && useTestnet) {
+        const wallet = window.xrpl.Wallet.fromSeed(walletSeed);
+        
+        try {
+          await client.fundWallet(wallet); // Fund only works on testnet
+        } catch (e) {
+          console.log('Wallet funding skipped or already funded (Testnet only)');
         }
-      };
 
-      const nftMintTx = {
-        TransactionType: 'NFTokenMint',
-        Account: wallet.address,
-        URI: window.xrpl.convertStringToHex(
-          JSON.stringify({
-            ...nftData[nftType],
-            image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
-            mintedAt: new Date().toISOString()
-          })
-        ),
-        Flags: 8,
-        TransferFee: 0,
-        NFTokenTaxon: 0
-      };
-
-      const prepared = await client.autofill(nftMintTx);
-      const signed = wallet.sign(prepared);
-      const result = await client.submitAndWait(signed.tx_blob);
-
-      if (result.result.meta.TransactionResult === 'tesSUCCESS') {
-        setMintedNFTs(prev => ({ ...prev, [nftType]: true }));
-        
-        const nftFieldMap = {
-          smartSaver: 'nft_smart_saver',
-          explorer: 'nft_explorer',
-          planner: 'nft_planner',
-          budgetExplorer: 'nft_budget_explorer'
+        const nftData = {
+          smartSaver: {
+            name: '🏆 Smart Saver NFT',
+            description: `Achievement: Saved €${balance?.toFixed(2) || '50+'} monthly`,
+            level: 'LEVEL 1'
+          },
+          explorer: {
+            name: '🌍 Explorer NFT',
+            description: 'Achievement: Mastered international currency conversion',
+            level: 'LEVEL 2'
+          },
+          planner: {
+            name: '🎯 Planner NFT',
+            description: 'Achievement: Set strategic financial goals',
+            level: 'LEVEL 3'
+          },
+          budgetExplorer: {
+            name: '💎 Blockchain Pioneer NFT',
+            description: 'Achievement: Completed cross-border payment simulation',
+            level: 'LEVEL 4'
+          }
         };
-        
-        await saveUserData({
-          [nftFieldMap[nftType]]: true
-        });
-        
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 5000);
+
+        const nftMintTx = {
+          TransactionType: 'NFTokenMint',
+          Account: wallet.address,
+          URI: window.xrpl.convertStringToHex(
+            JSON.stringify({
+              ...nftData[nftType],
+              image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
+              mintedAt: new Date().toISOString(),
+              student: user?.full_name || user?.email
+            })
+          ),
+          Flags: 8,
+          TransferFee: 0,
+          NFTokenTaxon: 0
+        };
+
+        const prepared = await client.autofill(nftMintTx);
+        const signed = wallet.sign(prepared);
+        const result = await client.submitAndWait(signed.tx_blob);
+
+        if (result.result.meta.TransactionResult === 'tesSUCCESS') {
+          setMintedNFTs(prev => ({ ...prev, [nftType]: true }));
+          
+          const nftFieldMap = {
+            smartSaver: 'nft_smart_saver',
+            explorer: 'nft_explorer',
+            planner: 'nft_planner',
+            budgetExplorer: 'nft_budget_explorer'
+          };
+          
+          await saveUserData({
+            [nftFieldMap[nftType]]: true
+          });
+          
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 5000);
+        } else {
+          setError('NFT minting failed: ' + result.result.meta.TransactionResult);
+        }
       } else {
-        setError('NFT minting failed: ' + result.result.meta.TransactionResult);
+        // For XAMAN wallets, show instructions
+        setError('💡 XAMAN/Manual Wallet Users: NFT minting requires signing. Open XAMAN app or similar wallet to sign. Simulating completion for now...');
+        
+        // Simulate success for demonstration
+        setTimeout(async () => {
+          setMintedNFTs(prev => ({ ...prev, [nftType]: true }));
+          const nftFieldMap = {
+            smartSaver: 'nft_smart_saver',
+            explorer: 'nft_explorer',
+            planner: 'nft_planner',
+            budgetExplorer: 'nft_budget_explorer'
+          };
+          await saveUserData({ [nftFieldMap[nftType]]: true });
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 5000);
+          setError(null);
+        }, 2000);
       }
 
       await client.disconnect();
@@ -739,6 +831,7 @@ export default function Home() {
               mintedNFTs={mintedNFTs}
               currentlyMinting={currentlyMinting}
               onGenerateWallet={generateWallet}
+              onConnectXaman={connectXamanWallet}
               onMintNFT={mintNFT}
             />
           </TabsContent>
@@ -753,6 +846,7 @@ export default function Home() {
               isSimulatingTx={isSimulatingTx}
               txHash={txHash}
               onSimulateTransaction={simulateXRPLTransaction}
+              useRealNetwork={connectionMethod !== 'generate'}
             />
           </TabsContent>
         </Tabs>

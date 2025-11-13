@@ -1,234 +1,404 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet, Award, Lock, BadgeCheck, Zap } from "lucide-react";
-import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { motion, AnimatePresence } from "framer-motion";
+import { Wallet, Zap, Trophy, Lock, CheckCircle2, Copy, ExternalLink, Smartphone, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function WalletPassport({ 
   walletAddress, 
   walletSeed, 
   isConnecting, 
-  xrplLoaded,
-  missions,
-  mintedNFTs,
-  currentlyMinting,
+  xrplLoaded, 
+  missions, 
+  mintedNFTs, 
+  currentlyMinting, 
   onGenerateWallet,
-  onMintNFT
+  onConnectXaman,
+  onMintNFT 
 }) {
+  const [manualAddress, setManualAddress] = useState('');
+  const [showSeed, setShowSeed] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [connectionMethod, setConnectionMethod] = useState(null); // 'xaman', 'generate', 'manual'
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleConnectXaman = () => {
+    if (onConnectXaman) {
+      onConnectXaman();
+    } else {
+      // Fallback: Open XAMAN deep link
+      const deepLink = 'xumm://connect';
+      window.open(deepLink, '_blank');
+    }
+  };
+
+  const handleManualConnect = () => {
+    if (manualAddress.length > 0) {
+      // Validate it's a proper XRPL address (starts with 'r' and is 25-35 chars)
+      if (manualAddress.startsWith('r') && manualAddress.length >= 25 && manualAddress.length <= 35) {
+        onConnectXaman(manualAddress);
+        setConnectionMethod('manual');
+      }
+    }
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-    >
-      <Card className="bg-black/40 backdrop-blur-sm border-2 border-yellow-500/50 hover:shadow-[0_0_30px_rgba(234,179,8,0.3)] transition-all duration-300">
-        <CardHeader className="p-3 border-b-2 border-yellow-500/30">
-          <CardTitle className="flex items-center gap-2 text-base text-yellow-400 font-black">
-            <motion.div
-              animate={{ y: [0, -5, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Wallet className="w-5 h-5" />
-            </motion.div>
-            NFT PASSPORT
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4">
-          {!walletAddress ? (
-            <div className="text-center space-y-3">
-              <motion.div 
-                className="w-16 h-16 mx-auto bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full flex items-center justify-center border-4 border-yellow-400"
-                animate={{ 
-                  rotate: 360,
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{ 
-                  rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-                  scale: { duration: 2, repeat: Infinity }
-                }}
-              >
-                <BadgeCheck className="w-8 h-8 text-black" />
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <p className="font-black text-sm text-yellow-400 mb-1 flex items-center justify-center gap-1">
-                  <motion.span
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                  >
-                    🌟
-                  </motion.span>
-                  DIGITAL PASSPORT
-                </p>
-                <p className="text-xs text-gray-400 font-bold">Generate wallet to collect NFT badges</p>
-              </motion.div>
-
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  onClick={onGenerateWallet}
-                  disabled={isConnecting || !xrplLoaded}
-                  className="w-full h-10 text-sm font-black bg-gradient-to-r from-yellow-500 to-orange-600 hover:shadow-[0_0_20px_rgba(234,179,8,0.5)] transition-all"
+    <div className="space-y-3 md:space-y-4">
+      {/* Connection Options */}
+      {!walletAddress && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="bg-gradient-to-br from-green-600/40 to-blue-600/40 backdrop-blur-sm border-2 md:border-4 border-green-400">
+            <CardHeader className="p-3 md:p-4 border-b-2 border-green-400/30">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg text-green-400 font-black">
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
                 >
-                  {isConnecting ? (
-                    <>
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="inline-block mr-2"
-                      >
-                        <Zap className="w-4 h-4" />
-                      </motion.div>
-                      CREATING...
-                    </>
-                  ) : (
-                    <>
-                      <BadgeCheck className="w-4 h-4 mr-2" />
-                      CREATE PASSPORT ⚡
-                    </>
-                  )}
-                </Button>
-              </motion.div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="border-2 border-green-400 bg-green-900/30 rounded-xl p-3"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <motion.span 
-                    className="text-xs font-black text-green-400"
-                    animate={{ opacity: [1, 0.5, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    ACTIVE
-                  </motion.span>
-                  <motion.span 
-                    className="text-xs font-black text-green-400 flex items-center gap-1"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    ● VERIFIED
-                  </motion.span>
-                </div>
-                <div className="bg-black/70 p-2 rounded border border-green-500/50 mb-2">
-                  <p className="text-xs text-green-400 mb-1 font-bold">ADDRESS</p>
-                  <p className="text-green-300 font-mono text-xs break-all">{walletAddress}</p>
-                </div>
-                {walletSeed && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-black/70 p-2 rounded border border-yellow-500/50"
-                  >
-                    <p className="text-xs text-yellow-400 mb-1 font-bold flex items-center gap-1">
-                      <motion.span
-                        animate={{ rotate: [0, -10, 10, 0] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        🔑
-                      </motion.span>
-                      SECRET (KEEP SAFE!)
-                    </p>
-                    <p className="text-yellow-300 font-mono text-xs break-all">{walletSeed}</p>
-                  </motion.div>
-                )}
+                  <Wallet className="w-5 h-5 md:w-6 md:h-6" />
+                </motion.div>
+                CONNECT WALLET
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3 md:p-4 space-y-3">
+              <Alert className="bg-blue-900/50 border-2 border-blue-400">
+                <AlertDescription className="text-blue-200 text-xs md:text-sm font-bold" style={{ fontFamily: 'monospace' }}>
+                  💡 Choose how to connect your XRP Ledger wallet
+                </AlertDescription>
+              </Alert>
+
+              {/* Option 1: XAMAN Wallet (Recommended) */}
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Card className="bg-black/40 border-2 border-green-500 cursor-pointer hover:border-green-400 transition-all">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 bg-green-500 border-2 border-black flex items-center justify-center flex-shrink-0">
+                        <Smartphone className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-green-400 font-black text-sm md:text-base" style={{ fontFamily: 'monospace' }}>
+                            XAMAN WALLET
+                          </h3>
+                          <span className="bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5" style={{ fontFamily: 'monospace' }}>
+                            RECOMMENDED
+                          </span>
+                        </div>
+                        <p className="text-gray-300 text-xs md:text-sm mb-3 font-bold" style={{ fontFamily: 'monospace' }}>
+                          ✅ Secure mobile wallet<br/>
+                          ✅ Real XRPL transactions<br/>
+                          ✅ Easy to use
+                        </p>
+                        <Button
+                          onClick={handleConnectXaman}
+                          disabled={isConnecting}
+                          className="w-full bg-green-500 hover:bg-green-400 text-white border-2 border-black font-black text-xs md:text-sm"
+                          style={{ fontFamily: 'monospace' }}
+                        >
+                          {isConnecting ? (
+                            <>
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                className="inline-block mr-2"
+                              >
+                                <Zap className="w-4 h-4" />
+                              </motion.div>
+                              CONNECTING...
+                            </>
+                          ) : (
+                            <>
+                              <Smartphone className="w-4 h-4 mr-2" />
+                              CONNECT XAMAN
+                            </>
+                          )}
+                        </Button>
+                        <p className="text-gray-400 text-[10px] mt-2 text-center" style={{ fontFamily: 'monospace' }}>
+                          Don't have XAMAN? <a href="https://xaman.app" target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 underline">Download here</a>
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
 
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="border-2 border-purple-400 bg-purple-900/30 rounded-xl p-3"
-              >
-                <h3 className="text-xs font-black text-purple-400 mb-2 flex items-center gap-1">
-                  <motion.span
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              {/* Option 2: Manual Address Entry */}
+              <motion.div whileHover={{ scale: 1.02 }}>
+                <Card className="bg-black/40 border-2 border-cyan-500">
+                  <CardContent className="p-3 md:p-4">
+                    <h3 className="text-cyan-400 font-black text-sm md:text-base mb-2" style={{ fontFamily: 'monospace' }}>
+                      📋 ENTER WALLET ADDRESS
+                    </h3>
+                    <p className="text-gray-300 text-xs mb-3 font-bold" style={{ fontFamily: 'monospace' }}>
+                      Already have an XRP address? Paste it here
+                    </p>
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="r... (your XRP address)"
+                        value={manualAddress}
+                        onChange={(e) => setManualAddress(e.target.value)}
+                        className="border-2 border-cyan-500/50 bg-black/50 text-cyan-100 font-bold text-xs md:text-sm"
+                        style={{ fontFamily: 'monospace' }}
+                      />
+                      <Button
+                        onClick={handleManualConnect}
+                        disabled={!manualAddress || manualAddress.length < 25}
+                        className="w-full bg-cyan-500 hover:bg-cyan-400 text-white border-2 border-black font-black text-xs md:text-sm"
+                        style={{ fontFamily: 'monospace' }}
+                      >
+                        CONNECT ADDRESS
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Option 3: Generate Test Wallet */}
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Card className="bg-black/40 border-2 border-yellow-500">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 bg-yellow-500 border-2 border-black flex items-center justify-center flex-shrink-0">
+                        <Zap className="w-6 h-6 text-black" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-yellow-400 font-black text-sm md:text-base" style={{ fontFamily: 'monospace' }}>
+                            GENERATE TEST WALLET
+                          </h3>
+                          <span className="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5" style={{ fontFamily: 'monospace' }}>
+                            TESTNET
+                          </span>
+                        </div>
+                        <p className="text-gray-300 text-xs md:text-sm mb-3 font-bold" style={{ fontFamily: 'monospace' }}>
+                          ⚠️ For testing only<br/>
+                          🎮 Practice mode<br/>
+                          💡 No real funds
+                        </p>
+                        <Button
+                          onClick={() => {
+                            onGenerateWallet();
+                            setConnectionMethod('generate');
+                          }}
+                          disabled={!xrplLoaded || isConnecting}
+                          className="w-full bg-yellow-500 hover:bg-yellow-400 text-black border-2 border-black font-black text-xs md:text-sm"
+                          style={{ fontFamily: 'monospace' }}
+                        >
+                          {!xrplLoaded ? (
+                            'LOADING...'
+                          ) : (
+                            <>
+                              <Zap className="w-4 h-4 mr-2" />
+                              GENERATE TESTNET
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Connected Wallet Display */}
+      {walletAddress && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <Card className="bg-gradient-to-br from-green-600/40 to-blue-600/40 backdrop-blur-sm border-2 md:border-4 border-green-400">
+            <CardHeader className="p-3 md:p-4 border-b-2 border-green-400/30">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg text-green-400 font-black">
+                <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
+                WALLET CONNECTED
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3 md:p-4 space-y-3">
+              <div className="bg-black/50 border-2 border-green-500 rounded p-3">
+                <Label className="text-green-400 font-black text-xs mb-2 block" style={{ fontFamily: 'monospace' }}>
+                  YOUR ADDRESS
+                </Label>
+                <div className="flex items-center gap-2">
+                  <code className="text-white text-[10px] md:text-xs font-bold break-all flex-1" style={{ fontFamily: 'monospace' }}>
+                    {walletAddress}
+                  </code>
+                  <Button
+                    size="sm"
+                    onClick={() => copyToClipboard(walletAddress)}
+                    className="bg-green-500 hover:bg-green-400 text-white border-2 border-black p-2"
                   >
-                    🏆
-                  </motion.span>
-                  BADGE COLLECTION
-                </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {missions.map((mission, index) => (
+                    {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
+                <a
+                  href={`https://livenet.xrpl.org/accounts/${walletAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cyan-400 hover:text-cyan-300 text-xs font-bold mt-2 inline-flex items-center gap-1"
+                  style={{ fontFamily: 'monospace' }}
+                >
+                  VIEW ON EXPLORER <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
+              {walletSeed && connectionMethod === 'generate' && (
+                <Alert className="bg-red-900/50 border-2 border-red-500">
+                  <AlertTriangle className="w-4 h-4 text-red-400" />
+                  <AlertDescription className="text-red-200 text-xs font-bold" style={{ fontFamily: 'monospace' }}>
+                    ⚠️ TESTNET WALLET - For practice only! Don't send real funds here.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {connectionMethod === 'xaman' && (
+                <Alert className="bg-green-900/50 border-2 border-green-500">
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  <AlertDescription className="text-green-200 text-xs font-bold" style={{ fontFamily: 'monospace' }}>
+                    ✅ REAL WALLET - Your XAMAN wallet is connected securely!
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* NFT Collection */}
+      {walletAddress && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="bg-black/40 backdrop-blur-sm border-2 border-pink-500/50">
+            <CardHeader className="p-3 md:p-4 border-b-2 border-pink-500/30">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg text-pink-400 font-black">
+                <Trophy className="w-5 h-5 md:w-6 md:h-6" />
+                NFT BADGE COLLECTION
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3 md:p-4 space-y-3">
+              <p className="text-gray-300 text-xs md:text-sm font-bold" style={{ fontFamily: 'monospace' }}>
+                Complete missions to unlock NFT badges on the blockchain!
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {missions.map((mission, index) => {
+                  const isMinted = mintedNFTs[mission.nftType];
+                  const canMint = mission.completed && !isMinted;
+                  const isMinting = currentlyMinting === mission.nftType;
+
+                  return (
                     <motion.div
                       key={mission.id}
-                      initial={{ opacity: 0, scale: 0.8 }}
+                      initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.1 }}
-                      whileHover={{ scale: 1.05 }}
-                      className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center p-2 transition-all ${
-                        mintedNFTs[mission.nftType]
-                          ? 'border-cyan-400 bg-cyan-900/30'
-                          : 'border-gray-700 bg-gray-900/30'
-                      }`}
+                      whileHover={canMint ? { scale: 1.05 } : {}}
                     >
-                      {mintedNFTs[mission.nftType] ? (
-                        <>
-                          <motion.div
-                            animate={{ 
-                              rotate: 360,
-                              scale: [1, 1.2, 1]
-                            }}
-                            transition={{ 
-                              rotate: { duration: 3, repeat: Infinity, ease: "linear" },
-                              scale: { duration: 1.5, repeat: Infinity }
-                            }}
-                          >
-                            <Award className="w-6 h-6 text-cyan-400 mb-1" />
-                          </motion.div>
-                          <span className="text-cyan-400 text-xs font-black">L{mission.mission}</span>
-                        </>
-                      ) : mission.completed ? (
-                        <>
-                          <mission.icon className="w-6 h-6 text-gray-500 mb-1" />
-                          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                            <Button
-                              onClick={() => onMintNFT(mission.nftType)}
-                              disabled={currentlyMinting === mission.nftType}
-                              className="w-full mt-1 h-6 text-xs font-bold bg-gradient-to-r from-cyan-500 to-purple-600"
-                            >
-                              {currentlyMinting === mission.nftType ? (
+                      <Card className={`${
+                        isMinted 
+                          ? 'bg-green-900/30 border-2 border-green-500'
+                          : canMint
+                          ? 'bg-yellow-900/30 border-2 border-yellow-500 cursor-pointer'
+                          : 'bg-gray-900/30 border-2 border-gray-700'
+                      }`}>
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className={`w-12 h-12 border-2 flex items-center justify-center ${
+                              isMinted ? 'border-green-500 bg-green-900/50' :
+                              canMint ? 'border-yellow-500 bg-yellow-900/50' :
+                              'border-gray-700 bg-gray-900/50'
+                            }`}>
+                              {isMinted ? (
                                 <motion.div
                                   animate={{ rotate: 360 }}
-                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                                 >
-                                  <Zap className="w-3 h-3" />
+                                  <mission.icon className="w-6 h-6 text-green-400" />
                                 </motion.div>
-                              ) : 'CLAIM'}
+                              ) : canMint ? (
+                                <motion.div
+                                  animate={{ scale: [1, 1.2, 1] }}
+                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                >
+                                  <mission.icon className="w-6 h-6 text-yellow-400" />
+                                </motion.div>
+                              ) : (
+                                <Lock className="w-6 h-6 text-gray-600" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className={`font-black text-sm ${
+                                isMinted ? 'text-green-400' :
+                                canMint ? 'text-yellow-400' :
+                                'text-gray-500'
+                              }`} style={{ fontFamily: 'monospace' }}>
+                                {mission.title}
+                              </h3>
+                              <p className="text-gray-400 text-[10px] font-bold" style={{ fontFamily: 'monospace' }}>
+                                {isMinted ? '✅ MINTED' : canMint ? '⚡ READY' : '🔒 LOCKED'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {canMint && (
+                            <Button
+                              onClick={() => onMintNFT(mission.nftType)}
+                              disabled={isMinting}
+                              className="w-full bg-yellow-500 hover:bg-yellow-400 text-black border-2 border-black font-black text-xs"
+                              style={{ fontFamily: 'monospace' }}
+                            >
+                              {isMinting ? (
+                                <>
+                                  <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    className="inline-block mr-2"
+                                  >
+                                    <Zap className="w-3 h-3" />
+                                  </motion.div>
+                                  MINTING...
+                                </>
+                              ) : (
+                                <>
+                                  <Trophy className="w-3 h-3 mr-2" />
+                                  MINT NFT BADGE
+                                </>
+                              )}
                             </Button>
-                          </motion.div>
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="w-6 h-6 text-gray-600 mb-1" />
-                          <span className="text-gray-600 text-xs font-bold">Locked</span>
-                        </>
-                      )}
+                          )}
+
+                          {isMinted && (
+                            <div className="bg-green-900/30 border border-green-500 rounded p-2 text-center">
+                              <p className="text-green-400 text-[10px] font-black" style={{ fontFamily: 'monospace' }}>
+                                🎉 OWNED!
+                              </p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
                     </motion.div>
-                  ))}
-                </div>
-                <div className="text-center mt-2">
-                  <motion.span 
-                    className="text-xs font-black text-purple-400"
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    {Object.values(mintedNFTs).filter(Boolean).length}/4 COLLECTED ⚡
-                  </motion.span>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+    </div>
   );
 }
