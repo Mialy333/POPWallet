@@ -122,7 +122,7 @@ export default function Layout({ children, currentPageName }) {
                 >
                   💰
                 </motion.div>
-                <div>
+                <div className="flex items-baseline gap-1.5">
                   <h1 
                     className="text-base md:text-2xl font-black tracking-wider retro-text"
                     style={{
@@ -133,7 +133,7 @@ export default function Layout({ children, currentPageName }) {
                   >
                     POP
                   </h1>
-                  <p className="text-[8px] md:text-xs font-bold text-cyan-400" style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
+                  <p className="text-[10px] md:text-sm font-bold text-cyan-400" style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
                     WALLET
                   </p>
                 </div>
