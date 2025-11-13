@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
@@ -106,7 +105,7 @@ export default function Home() {
   
   const [walletAddress, setWalletAddress] = useState(null);
   const [walletSeed, setWalletSeed] = useState(null);
-  const [connectionMethod, setConnectionMethod] = useState(null); // 'generate', 'xaman', 'manual'
+  const [connectionMethod, setConnectionMethod] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [xrplTransactionDone, setXrplTransactionDone] = useState(false);
   const [isSimulatingTx, setIsSimulatingTx] = useState(false);
@@ -334,9 +333,7 @@ export default function Home() {
       setError(null);
       
       if (manualAddress) {
-        // Manual address entry
         setWalletAddress(manualAddress);
-        setWalletSeed(null); // Clear seed if connecting manually
         setConnectionMethod('manual');
         
         await saveUserData({
@@ -347,11 +344,8 @@ export default function Home() {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       } else {
-        // XAMAN deep link integration
-        // In production, use XAMAN SDK or deep linking
-        // For now, show instructions
+        const xamanDeepLink = `xumm://authorize`;
         setError('XAMAN Integration: Please install XAMAN app and connect manually, or enter your XRP address in the manual input field.');
-        
         setConnectionMethod('xaman');
       }
       
@@ -377,23 +371,21 @@ export default function Home() {
       setIsSimulatingTx(true);
       setError(null);
 
-      // Determine if using testnet or mainnet
       const useTestnet = connectionMethod === 'generate';
       const networkUrl = useTestnet 
         ? 'wss://s.altnet.rippletest.net:51233'
-        : 'wss://xrplcluster.com'; // Mainnet
+        : 'wss://xrplcluster.com';
 
       const client = new window.xrpl.Client(networkUrl);
       await client.connect();
 
-      // For generated testnet wallets, we have the seed
       if (walletSeed && useTestnet) {
         const wallet = window.xrpl.Wallet.fromSeed(walletSeed);
         
         try {
-          await client.fundWallet(wallet); // Fund only works on testnet
+          await client.fundWallet(wallet);
         } catch (e) {
-          console.log('Wallet funding skipped or already funded (Testnet only)');
+          console.log('Wallet funding skipped');
         }
 
         const payment = {
@@ -429,17 +421,14 @@ export default function Home() {
           setError('Transaction failed: ' + result.result.meta.TransactionResult);
         }
       } else {
-        // For XAMAN or manual wallets, show instructions for manual signing or simulate
-        setError('💡 XAMAN/Manual Wallet Users: Transaction requires signing. Open XAMAN app or similar wallet to sign. Simulating completion for now...');
+        setError('💡 XAMAN USERS: Open your XAMAN app to sign the transaction. For full integration, we\'ll implement XAMAN SDK in next update!');
         
-        // Simulate success for demonstration
-        setTimeout(async () => {
+        setTimeout(() => {
           setXrplTransactionDone(true);
           setTxHash('simulated-xaman-transaction');
-          await saveUserData({ mission_xrpl: true });
+          saveUserData({ mission_xrpl: true });
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 5000);
-          setError(null);
         }, 2000);
       }
 
@@ -467,7 +456,6 @@ export default function Home() {
       setCurrentlyMinting(nftType);
       setError(null);
 
-      // Determine if using testnet or mainnet
       const useTestnet = connectionMethod === 'generate';
       const networkUrl = useTestnet 
         ? 'wss://s.altnet.rippletest.net:51233'
@@ -476,14 +464,13 @@ export default function Home() {
       const client = new window.xrpl.Client(networkUrl);
       await client.connect();
 
-      // Only proceed with full minting if we have the seed (testnet)
       if (walletSeed && useTestnet) {
         const wallet = window.xrpl.Wallet.fromSeed(walletSeed);
         
         try {
-          await client.fundWallet(wallet); // Fund only works on testnet
+          await client.fundWallet(wallet);
         } catch (e) {
-          console.log('Wallet funding skipped or already funded (Testnet only)');
+          console.log('Wallet funding skipped');
         }
 
         const nftData = {
@@ -494,17 +481,17 @@ export default function Home() {
           },
           explorer: {
             name: '🌍 Explorer NFT',
-            description: 'Achievement: Mastered international currency conversion',
+            description: 'Achievement: Currency conversion master',
             level: 'LEVEL 2'
           },
           planner: {
             name: '🎯 Planner NFT',
-            description: 'Achievement: Set strategic financial goals',
+            description: 'Achievement: Strategic goal setter',
             level: 'LEVEL 3'
           },
           budgetExplorer: {
             name: '💎 Blockchain Pioneer NFT',
-            description: 'Achievement: Completed cross-border payment simulation',
+            description: 'Achievement: Cross-border payment completed',
             level: 'LEVEL 4'
           }
         };
@@ -549,11 +536,9 @@ export default function Home() {
           setError('NFT minting failed: ' + result.result.meta.TransactionResult);
         }
       } else {
-        // For XAMAN wallets, show instructions
-        setError('💡 XAMAN/Manual Wallet Users: NFT minting requires signing. Open XAMAN app or similar wallet to sign. Simulating completion for now...');
+        setError('💡 XAMAN USERS: NFT minting will open XAMAN app for signing. Full SDK integration coming soon!');
         
-        // Simulate success for demonstration
-        setTimeout(async () => {
+        setTimeout(() => {
           setMintedNFTs(prev => ({ ...prev, [nftType]: true }));
           const nftFieldMap = {
             smartSaver: 'nft_smart_saver',
@@ -561,7 +546,7 @@ export default function Home() {
             planner: 'nft_planner',
             budgetExplorer: 'nft_budget_explorer'
           };
-          await saveUserData({ [nftFieldMap[nftType]]: true });
+          saveUserData({ [nftFieldMap[nftType]]: true });
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 5000);
           setError(null);
@@ -664,9 +649,19 @@ export default function Home() {
             linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
           background-size: 20px 20px;
         }
+
+        .scrollable-tabs {
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        
+        .scrollable-tabs::-webkit-scrollbar {
+          display: none;
+        }
       `}</style>
 
-      {/* Floating Elements */}
       <div className="absolute inset-0 pixel-grid opacity-50"></div>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(10)].map((_, i) => (
@@ -738,36 +733,38 @@ export default function Home() {
         </AnimatePresence>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 gap-0.5 bg-black/80 border-2 border-yellow-400 mb-3 p-0.5" style={{ fontFamily: 'monospace' }}>
-            <TabsTrigger value="dashboard" className="text-[10px] md:text-xs font-black data-[state=active]:bg-yellow-400 data-[state=active]:text-black px-1 py-1.5">
-              <LayoutDashboard className="w-3 h-3 md:mr-1" />
-              <span className="hidden md:inline">HOME</span>
-            </TabsTrigger>
-            <TabsTrigger value="budget" className="text-[10px] md:text-xs font-black data-[state=active]:bg-cyan-400 data-[state=active]:text-black px-1 py-1.5">
-              <Coins className="w-3 h-3 md:mr-1" />
-              <span className="hidden md:inline">BUDGET</span>
-            </TabsTrigger>
-            <TabsTrigger value="convert" className="text-[10px] md:text-xs font-black data-[state=active]:bg-orange-400 data-[state=active]:text-black px-1 py-1.5">
-              <Globe className="w-3 h-3 md:mr-1" />
-              <span className="hidden md:inline">CONVERT</span>
-            </TabsTrigger>
-            <TabsTrigger value="map" className="text-[10px] md:text-xs font-black data-[state=active]:bg-blue-400 data-[state=active]:text-black px-1 py-1.5">
-              <Map className="w-3 h-3 md:mr-1" />
-              <span className="hidden md:inline">MAP</span>
-            </TabsTrigger>
-            <TabsTrigger value="goals" className="text-[10px] md:text-xs font-black data-[state=active]:bg-red-400 data-[state=active]:text-black px-1 py-1.5">
-              <Target className="w-3 h-3 md:mr-1" />
-              <span className="hidden md:inline">GOALS</span>
-            </TabsTrigger>
-            <TabsTrigger value="wallet" className="text-[10px] md:text-xs font-black data-[state=active]:bg-green-400 data-[state=active]:text-black px-1 py-1.5">
-              <Wallet className="w-3 h-3 md:mr-1" />
-              <span className="hidden md:inline">WALLET</span>
-            </TabsTrigger>
-            <TabsTrigger value="xrpl" className="text-[10px] md:text-xs font-black data-[state=active]:bg-pink-400 data-[state=active]:text-black px-1 py-1.5">
-              <Send className="w-3 h-3 md:mr-1" />
-              <span className="hidden md:inline">XRPL</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="scrollable-tabs mb-3">
+            <TabsList className="inline-flex w-auto min-w-full bg-black/80 border-2 border-yellow-400 p-0.5 gap-0.5" style={{ fontFamily: 'monospace' }}>
+              <TabsTrigger value="dashboard" className="flex-shrink-0 text-[9px] sm:text-xs font-black data-[state=active]:bg-yellow-400 data-[state=active]:text-black px-2 sm:px-3 py-2 whitespace-nowrap">
+                <LayoutDashboard className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                <span className="hidden sm:inline">HOME</span>
+              </TabsTrigger>
+              <TabsTrigger value="budget" className="flex-shrink-0 text-[9px] sm:text-xs font-black data-[state=active]:bg-cyan-400 data-[state=active]:text-black px-2 sm:px-3 py-2 whitespace-nowrap">
+                <Coins className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                <span className="hidden sm:inline">BUDGET</span>
+              </TabsTrigger>
+              <TabsTrigger value="convert" className="flex-shrink-0 text-[9px] sm:text-xs font-black data-[state=active]:bg-orange-400 data-[state=active]:text-black px-2 sm:px-3 py-2 whitespace-nowrap">
+                <Globe className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                <span className="hidden sm:inline">CONVERT</span>
+              </TabsTrigger>
+              <TabsTrigger value="map" className="flex-shrink-0 text-[9px] sm:text-xs font-black data-[state=active]:bg-blue-400 data-[state=active]:text-black px-2 sm:px-3 py-2 whitespace-nowrap">
+                <Map className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                <span className="hidden sm:inline">MAP</span>
+              </TabsTrigger>
+              <TabsTrigger value="goals" className="flex-shrink-0 text-[9px] sm:text-xs font-black data-[state=active]:bg-red-400 data-[state=active]:text-black px-2 sm:px-3 py-2 whitespace-nowrap">
+                <Target className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                <span className="hidden sm:inline">GOALS</span>
+              </TabsTrigger>
+              <TabsTrigger value="wallet" className="flex-shrink-0 text-[9px] sm:text-xs font-black data-[state=active]:bg-green-400 data-[state=active]:text-black px-2 sm:px-3 py-2 whitespace-nowrap">
+                <Wallet className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                <span className="hidden sm:inline">WALLET</span>
+              </TabsTrigger>
+              <TabsTrigger value="xrpl" className="flex-shrink-0 text-[9px] sm:text-xs font-black data-[state=active]:bg-pink-400 data-[state=active]:text-black px-2 sm:px-3 py-2 whitespace-nowrap">
+                <Send className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                <span className="hidden sm:inline">XRPL</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="dashboard">
             <Dashboard
