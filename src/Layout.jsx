@@ -91,6 +91,17 @@ export default function Layout({ children, currentPageName }) {
             linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
           background-size: 20px 20px;
         }
+
+        .logo-shadow {
+          filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)) 
+                  drop-shadow(0 0 20px rgba(255, 23, 68, 0.3))
+                  drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .coin-glow {
+          filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)) 
+                  drop-shadow(0 0 25px rgba(255, 140, 0, 0.4));
+        }
       `}</style>
 
       {/* Navigation Bar */}
@@ -101,40 +112,58 @@ export default function Layout({ children, currentPageName }) {
       >
         <div className="max-w-7xl mx-auto px-3 md:px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
-            {/* Logo */}
+            {/* Enhanced Logo */}
             <Link to={createPageUrl('Home')} onClick={closeMenu}>
               <motion.div 
-                className="flex items-center gap-2"
-                whileHover={{ scale: 1.05 }}
+                className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-purple-900/80 border-2 md:border-3 border-yellow-400 rounded-lg logo-shadow"
+                whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(88, 28, 135, 0.9) 0%, rgba(49, 46, 129, 0.9) 50%, rgba(88, 28, 135, 0.9) 100%)',
+                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                }}
               >
                 <motion.div
                   animate={{ 
                     rotate: [0, -10, 10, -10, 0],
-                    scale: [1, 1.1, 1]
+                    scale: [1, 1.15, 1]
                   }}
                   transition={{ 
                     duration: 2,
                     repeat: Infinity,
                     repeatDelay: 3
                   }}
-                  className="text-2xl md:text-4xl"
+                  className="text-3xl md:text-5xl coin-glow"
                 >
                   💰
                 </motion.div>
-                <div className="flex items-baseline gap-1.5">
-                  <h1 
-                    className="text-base md:text-2xl font-black tracking-wider retro-text"
-                    style={{
-                      fontFamily: "'Press Start 2P', cursive",
-                      color: '#FFD600',
-                      textShadow: '2px 2px 0px #FF1744'
-                    }}
-                  >
-                    POP
-                  </h1>
-                  <p className="text-[10px] md:text-sm font-bold text-cyan-400" style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
-                    WALLET
+                <div className="flex flex-col">
+                  <div className="flex items-baseline gap-2">
+                    <h1 
+                      className="text-xl md:text-3xl font-black tracking-wider"
+                      style={{
+                        fontFamily: "'Press Start 2P', cursive",
+                        background: 'linear-gradient(to bottom, #FFD600 0%, #FFA500 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        filter: 'drop-shadow(2px 2px 0px #FF1744) drop-shadow(0 0 10px rgba(255, 215, 0, 0.5))'
+                      }}
+                    >
+                      POP
+                    </h1>
+                    <p 
+                      className="text-sm md:text-xl font-black" 
+                      style={{ 
+                        fontFamily: "'Press Start 2P', cursive", 
+                        color: '#00E5FF',
+                        textShadow: '1px 1px 0px #0091EA, 0 0 10px rgba(0, 229, 255, 0.5)'
+                      }}
+                    >
+                      WALLET
+                    </p>
+                  </div>
+                  <p className="text-[8px] md:text-[10px] text-yellow-300 font-bold tracking-widest mt-0.5" style={{ fontFamily: 'monospace' }}>
+                    STUDENT FINANCE
                   </p>
                 </div>
               </motion.div>
