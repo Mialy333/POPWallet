@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coins, Globe, Target, Send, Wallet, Trophy, Map, LayoutDashboard } from "lucide-react";
+import { Coins, Globe, Target, Send, Wallet, Map, LayoutDashboard } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 
-import MissionProgress from '../components/missions/MissionProgress';
-import CitySelector from '../components/missions/CitySelector';
+import Dashboard from '../components/Dashboard';
 import BudgetMission from '../components/missions/BudgetMission';
 import CurrencyConverter from '../components/missions/CurrencyConverter';
 import MapExplorer from '../components/missions/MapExplorer';
 import GoalsPlanner from '../components/missions/GoalsPlanner';
 import WalletPassport from '../components/missions/WalletPassport';
 import XRPLPayment from '../components/missions/XRPLPayment';
-import Dashboard from '../components/Dashboard';
 
 // Fix Leaflet default icon issue
 if (typeof window !== 'undefined') {
@@ -88,6 +85,7 @@ const CITY_COSTS = {
 export default function Home() {
   const [user, setUser] = useState(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [currentTab, setCurrentTab] = useState('dashboard');
   
   const [income, setIncome] = useState('');
   const [expenses, setExpenses] = useState('');
@@ -191,7 +189,6 @@ export default function Home() {
     script.src = 'https://unpkg.com/xrpl@2.11.0/build/xrpl-latest-min.js';
     script.async = true;
     script.onload = () => {
-      console.log('XRPL library loaded');
       setXrplLoaded(true);
     };
     script.onerror = () => {
@@ -493,13 +490,17 @@ export default function Home() {
     await saveUserData({ selected_city: city });
   };
 
+  const handleQuickAction = (tab) => {
+    setCurrentTab(tab);
+  };
+
   const missions = [
     {
       id: 'smartSaver',
       title: 'Smart Saver',
       description: 'Save at least €50',
       completed: balance !== null && balance > 50,
-      icon: Trophy,
+      icon: Coins,
       color: 'yellow',
       nftType: 'smartSaver',
       mission: 1
@@ -553,7 +554,7 @@ export default function Home() {
             💰
           </motion.div>
           <p className="text-yellow-400 font-black text-xl tracking-wider" style={{ fontFamily: 'monospace' }}>
-            LOADING POP WALLET...
+            LOADING...
           </p>
         </div>
       </div>
@@ -571,38 +572,12 @@ export default function Home() {
             linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
           background-size: 20px 20px;
         }
-        
-        .retro-shadow {
-          box-shadow: 
-            4px 4px 0px rgba(0, 0, 0, 0.5),
-            8px 8px 0px rgba(255, 215, 0, 0.3);
-        }
-        
-        @keyframes float-coins {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.5);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #FFD600, #FF1744);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #FFE44D, #FF4569);
-        }
       `}</style>
 
-      {/* Floating Retro Elements */}
+      {/* Floating Elements */}
       <div className="absolute inset-0 pixel-grid opacity-50"></div>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(15)].map((_, i) => (
+        {[...Array(10)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute text-2xl md:text-4xl"
@@ -621,7 +596,7 @@ export default function Home() {
               delay: Math.random() * 2
             }}
           >
-            {['💰', '🎮', '⭐', '🏆', '💎', '🎯', '🚀'][i % 7]}
+            {['💰', '🎮', '⭐', '🏆', '💎'][i % 5]}
           </motion.div>
         ))}
       </div>
@@ -632,7 +607,7 @@ export default function Home() {
             {[...Array(50)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute text-2xl md:text-3xl"
+                className="absolute text-3xl"
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: '-10%'
@@ -645,226 +620,142 @@ export default function Home() {
                 }}
                 transition={{ duration: Math.random() * 2 + 2, delay: Math.random() * 0.5 }}
               >
-                {['⭐', '💎', '🎮', '🏆', '💰', '🎯', '🚀', '👾'][Math.floor(Math.random() * 8)]}
+                {['⭐', '💎', '🎮', '🏆', '💰'][Math.floor(Math.random() * 5)]}
               </motion.div>
             ))}
           </div>
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 p-3 md:p-6">
-        <div className="max-w-7xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, type: "spring" }}
-            className="text-center mb-4 md:mb-6"
-          >
-            <motion.h1 
-              className="text-3xl md:text-6xl font-black mb-2 md:mb-3 tracking-wider"
-              style={{
-                fontFamily: "'Press Start 2P', cursive",
-                color: '#FFD600',
-                textShadow: '3px 3px 0px #FF1744, 6px 6px 0px #000'
-              }}
-              animate={{ 
-                scale: [1, 1.05, 1],
-              }}
-              transition={{ 
-                duration: 2, 
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
+      <div className="relative z-10 p-3 md:p-6 max-w-7xl mx-auto">
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-3"
             >
-              POP WALLET
-            </motion.h1>
-            
-            {user && (
-              <motion.p 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-yellow-300 font-bold text-xs md:text-sm bg-black/50 inline-block px-3 md:px-4 py-2 border-2 md:border-4 border-yellow-500 retro-shadow"
-                style={{ fontFamily: 'monospace' }}
-              >
-                PLAYER: <span className="text-red-400">{user.full_name || 'HERO'}</span>
-                <motion.span
-                  animate={{ scale: [1, 1.3, 1] }}
-                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-                  className="inline-block ml-2"
-                >
-                  🎮
-                </motion.span>
-              </motion.p>
-            )}
-          </motion.div>
-
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="mb-3 md:mb-4"
-              >
-                <Alert className="bg-red-600 border-2 md:border-4 border-red-800 retro-shadow">
-                  <AlertDescription className="text-white font-bold text-xs md:text-sm" style={{ fontFamily: 'monospace' }}>
-                    ⚠️ {error}
-                  </AlertDescription>
-                </Alert>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <MissionProgress missions={missions} />
-          
-          <CitySelector 
-            selectedCity={selectedCity} 
-            onCityChange={handleCityChange} 
-            cities={CITY_COSTS} 
-          />
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Tabs defaultValue="dashboard" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 gap-1 bg-black/80 border-2 md:border-4 border-yellow-400 mb-3 md:mb-4 p-1 retro-shadow" style={{ fontFamily: 'monospace' }}>
-                <TabsTrigger value="dashboard" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
-                  <LayoutDashboard className="w-3 h-3 md:mr-1" />
-                  <span className="hidden md:inline">HOME</span>
-                </TabsTrigger>
-                <TabsTrigger value="budget" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
-                  <Coins className="w-3 h-3 md:mr-1" />
-                  <span className="hidden md:inline">BUDGET</span>
-                </TabsTrigger>
-                <TabsTrigger value="convert" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-orange-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
-                  <Globe className="w-3 h-3 md:mr-1" />
-                  <span className="hidden md:inline">CONVERT</span>
-                </TabsTrigger>
-                <TabsTrigger value="map" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-blue-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
-                  <Map className="w-3 h-3 md:mr-1" />
-                  <span className="hidden md:inline">MAP</span>
-                </TabsTrigger>
-                <TabsTrigger value="goals" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-red-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
-                  <Target className="w-3 h-3 md:mr-1" />
-                  <span className="hidden md:inline">GOALS</span>
-                </TabsTrigger>
-                <TabsTrigger value="wallet" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-green-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
-                  <Wallet className="w-3 h-3 md:mr-1" />
-                  <span className="hidden md:inline">WALLET</span>
-                </TabsTrigger>
-                <TabsTrigger value="xrpl" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-pink-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
-                  <Send className="w-3 h-3 md:mr-1" />
-                  <span className="hidden md:inline">XRPL</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="dashboard">
-                <Dashboard
-                  user={user}
-                  walletAddress={walletAddress}
-                  balance={balance}
-                  income={income}
-                  expenses={expenses}
-                  missions={missions}
-                  mintedNFTs={mintedNFTs}
-                  cityData={cityData}
-                />
-              </TabsContent>
-
-              <TabsContent value="budget">
-                <BudgetMission
-                  income={income}
-                  setIncome={setIncome}
-                  expenses={expenses}
-                  setExpenses={setExpenses}
-                  balance={balance}
-                  onCalculate={calculateBalance}
-                />
-              </TabsContent>
-
-              <TabsContent value="convert">
-                <CurrencyConverter
-                  localCurrency={localCurrency}
-                  setLocalCurrency={setLocalCurrency}
-                  localAmount={localAmount}
-                  setLocalAmount={setLocalAmount}
-                  convertedEuro={convertedEuro}
-                  realExchangeRate={realExchangeRate}
-                  isLoadingRate={isLoadingRate}
-                  onConvert={fetchRealExchangeRate}
-                  cityData={cityData}
-                />
-              </TabsContent>
-
-              <TabsContent value="map">
-                <MapExplorer converterUsed={converterUsed} cityData={cityData} />
-              </TabsContent>
-
-              <TabsContent value="goals">
-                <GoalsPlanner
-                  goals={goals}
-                  setGoals={setGoals}
-                  goalsSet={goalsSet}
-                  onSetGoals={handleSetGoals}
-                />
-              </TabsContent>
-
-              <TabsContent value="wallet">
-                <WalletPassport
-                  walletAddress={walletAddress}
-                  walletSeed={walletSeed}
-                  isConnecting={isConnecting}
-                  xrplLoaded={xrplLoaded}
-                  missions={missions}
-                  mintedNFTs={mintedNFTs}
-                  currentlyMinting={currentlyMinting}
-                  onGenerateWallet={generateWallet}
-                  onMintNFT={mintNFT}
-                />
-              </TabsContent>
-
-              <TabsContent value="xrpl">
-                <XRPLPayment
-                  walletAddress={walletAddress}
-                  converterUsed={converterUsed}
-                  localCurrency={localCurrency}
-                  currencyFlag={CURRENCY_RATES[localCurrency]?.flag}
-                  xrplTransactionDone={xrplTransactionDone}
-                  isSimulatingTx={isSimulatingTx}
-                  txHash={txHash}
-                  onSimulateTransaction={simulateXRPLTransaction}
-                />
-              </TabsContent>
-            </Tabs>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-4 md:mt-6 text-center"
-          >
-            <motion.div 
-              className="inline-flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-red-500 via-yellow-400 to-blue-500 border-2 md:border-4 border-black retro-shadow"
-              animate={{ 
-                y: [0, -5, 0]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-              style={{ fontFamily: 'monospace' }}
-            >
-              <motion.span 
-                className="text-white text-[10px] md:text-xs font-black"
-                animate={{ opacity: [1, 0.5, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                🎮 XRPL TESTNET • ARCADE MODE ⚡
-              </motion.span>
+              <Alert className="bg-red-600 border-2 border-red-800">
+                <AlertDescription className="text-white font-bold text-xs" style={{ fontFamily: 'monospace' }}>
+                  ⚠️ {error}
+                </AlertDescription>
+              </Alert>
             </motion.div>
-          </motion.div>
-        </div>
+          )}
+        </AnimatePresence>
+
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 gap-0.5 bg-black/80 border-2 border-yellow-400 mb-3 p-0.5" style={{ fontFamily: 'monospace' }}>
+            <TabsTrigger value="dashboard" className="text-[10px] md:text-xs font-black data-[state=active]:bg-yellow-400 data-[state=active]:text-black px-1 py-1.5">
+              <LayoutDashboard className="w-3 h-3 md:mr-1" />
+              <span className="hidden md:inline">HOME</span>
+            </TabsTrigger>
+            <TabsTrigger value="budget" className="text-[10px] md:text-xs font-black data-[state=active]:bg-cyan-400 data-[state=active]:text-black px-1 py-1.5">
+              <Coins className="w-3 h-3 md:mr-1" />
+              <span className="hidden md:inline">BUDGET</span>
+            </TabsTrigger>
+            <TabsTrigger value="convert" className="text-[10px] md:text-xs font-black data-[state=active]:bg-orange-400 data-[state=active]:text-black px-1 py-1.5">
+              <Globe className="w-3 h-3 md:mr-1" />
+              <span className="hidden md:inline">CONVERT</span>
+            </TabsTrigger>
+            <TabsTrigger value="map" className="text-[10px] md:text-xs font-black data-[state=active]:bg-blue-400 data-[state=active]:text-black px-1 py-1.5">
+              <Map className="w-3 h-3 md:mr-1" />
+              <span className="hidden md:inline">MAP</span>
+            </TabsTrigger>
+            <TabsTrigger value="goals" className="text-[10px] md:text-xs font-black data-[state=active]:bg-red-400 data-[state=active]:text-black px-1 py-1.5">
+              <Target className="w-3 h-3 md:mr-1" />
+              <span className="hidden md:inline">GOALS</span>
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="text-[10px] md:text-xs font-black data-[state=active]:bg-green-400 data-[state=active]:text-black px-1 py-1.5">
+              <Wallet className="w-3 h-3 md:mr-1" />
+              <span className="hidden md:inline">WALLET</span>
+            </TabsTrigger>
+            <TabsTrigger value="xrpl" className="text-[10px] md:text-xs font-black data-[state=active]:bg-pink-400 data-[state=active]:text-black px-1 py-1.5">
+              <Send className="w-3 h-3 md:mr-1" />
+              <span className="hidden md:inline">XRPL</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard">
+            <Dashboard
+              user={user}
+              walletAddress={walletAddress}
+              balance={balance}
+              income={income}
+              expenses={expenses}
+              missions={missions}
+              mintedNFTs={mintedNFTs}
+              cityData={cityData}
+              onQuickAction={handleQuickAction}
+            />
+          </TabsContent>
+
+          <TabsContent value="budget">
+            <BudgetMission
+              income={income}
+              setIncome={setIncome}
+              expenses={expenses}
+              setExpenses={setExpenses}
+              balance={balance}
+              onCalculate={calculateBalance}
+            />
+          </TabsContent>
+
+          <TabsContent value="convert">
+            <CurrencyConverter
+              localCurrency={localCurrency}
+              setLocalCurrency={setLocalCurrency}
+              localAmount={localAmount}
+              setLocalAmount={setLocalAmount}
+              convertedEuro={convertedEuro}
+              realExchangeRate={realExchangeRate}
+              isLoadingRate={isLoadingRate}
+              onConvert={fetchRealExchangeRate}
+              cityData={cityData}
+            />
+          </TabsContent>
+
+          <TabsContent value="map">
+            <MapExplorer converterUsed={converterUsed} cityData={cityData} />
+          </TabsContent>
+
+          <TabsContent value="goals">
+            <GoalsPlanner
+              goals={goals}
+              setGoals={setGoals}
+              goalsSet={goalsSet}
+              onSetGoals={handleSetGoals}
+            />
+          </TabsContent>
+
+          <TabsContent value="wallet">
+            <WalletPassport
+              walletAddress={walletAddress}
+              walletSeed={walletSeed}
+              isConnecting={isConnecting}
+              xrplLoaded={xrplLoaded}
+              missions={missions}
+              mintedNFTs={mintedNFTs}
+              currentlyMinting={currentlyMinting}
+              onGenerateWallet={generateWallet}
+              onMintNFT={mintNFT}
+            />
+          </TabsContent>
+
+          <TabsContent value="xrpl">
+            <XRPLPayment
+              walletAddress={walletAddress}
+              converterUsed={converterUsed}
+              localCurrency={localCurrency}
+              currencyFlag={CURRENCY_RATES[localCurrency]?.flag}
+              xrplTransactionDone={xrplTransactionDone}
+              isSimulatingTx={isSimulatingTx}
+              txHash={txHash}
+              onSimulateTransaction={simulateXRPLTransaction}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
