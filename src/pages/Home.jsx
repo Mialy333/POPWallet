@@ -3,7 +3,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coins, Globe, Target, Send, Wallet, Trophy, Map } from "lucide-react";
+import { Coins, Globe, Target, Send, Wallet, Trophy, Map, LayoutDashboard } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 
 import MissionProgress from '../components/missions/MissionProgress';
@@ -14,6 +14,7 @@ import MapExplorer from '../components/missions/MapExplorer';
 import GoalsPlanner from '../components/missions/GoalsPlanner';
 import WalletPassport from '../components/missions/WalletPassport';
 import XRPLPayment from '../components/missions/XRPLPayment';
+import Dashboard from '../components/Dashboard';
 
 // Fix Leaflet default icon issue
 if (typeof window !== 'undefined') {
@@ -133,7 +134,6 @@ export default function Home() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // Load all saved data from user profile
       if (currentUser.monthly_income) setIncome(currentUser.monthly_income.toString());
       if (currentUser.monthly_expenses) setExpenses(currentUser.monthly_expenses.toString());
       if (currentUser.monthly_balance !== undefined) setBalance(currentUser.monthly_balance);
@@ -419,22 +419,22 @@ export default function Home() {
 
       const nftData = {
         smartSaver: {
-          name: '🏆 Smart Saver Badge',
+          name: '🏆 Smart Saver NFT',
           description: `Achievement Unlocked: Saved €${balance?.toFixed(2) || '50+'} in monthly budget`,
           level: 'LEVEL 1'
         },
         explorer: {
-          name: '🌍 Explorer Badge',
+          name: '🌍 Explorer NFT',
           description: 'Achievement Unlocked: Mastered international currency conversion',
           level: 'LEVEL 2'
         },
         planner: {
-          name: '🎯 Planner Badge',
+          name: '🎯 Planner NFT',
           description: 'Achievement Unlocked: Set strategic financial goals',
           level: 'LEVEL 3'
         },
         budgetExplorer: {
-          name: '💎 Blockchain Pioneer Badge',
+          name: '💎 Budget Explorer NFT',
           description: 'Achievement Unlocked: Completed cross-border payment simulation',
           level: 'LEVEL 4'
         }
@@ -447,8 +447,7 @@ export default function Home() {
           JSON.stringify({
             ...nftData[nftType],
             image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
-            mintedAt: new Date().toISOString(),
-            student: user?.full_name || user?.email
+            mintedAt: new Date().toISOString()
           })
         ),
         Flags: 8,
@@ -541,7 +540,7 @@ export default function Home() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center">
         <div className="text-center">
           <motion.div
             animate={{ 
@@ -553,7 +552,7 @@ export default function Home() {
           >
             💰
           </motion.div>
-          <p className="text-yellow-400 font-black text-lg md:text-xl tracking-wider" style={{ fontFamily: 'monospace' }}>
+          <p className="text-yellow-400 font-black text-xl tracking-wider" style={{ fontFamily: 'monospace' }}>
             LOADING POP WALLET...
           </p>
         </div>
@@ -579,8 +578,13 @@ export default function Home() {
             8px 8px 0px rgba(255, 215, 0, 0.3);
         }
         
+        @keyframes float-coins {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: rgba(0, 0, 0, 0.5);
@@ -590,12 +594,15 @@ export default function Home() {
           background: linear-gradient(to bottom, #FFD600, #FF1744);
           border-radius: 10px;
         }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #FFE44D, #FF4569);
+        }
       `}</style>
 
       {/* Floating Retro Elements */}
       <div className="absolute inset-0 pixel-grid opacity-50"></div>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(10)].map((_, i) => (
+        {[...Array(15)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute text-2xl md:text-4xl"
@@ -622,7 +629,7 @@ export default function Home() {
       <AnimatePresence>
         {showConfetti && (
           <div className="fixed inset-0 pointer-events-none z-50">
-            {[...Array(40)].map((_, i) => (
+            {[...Array(50)].map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute text-2xl md:text-3xl"
@@ -654,7 +661,7 @@ export default function Home() {
             className="text-center mb-4 md:mb-6"
           >
             <motion.h1 
-              className="text-3xl md:text-5xl lg:text-6xl font-black mb-2 md:mb-3 tracking-wider"
+              className="text-3xl md:text-6xl font-black mb-2 md:mb-3 tracking-wider"
               style={{
                 fontFamily: "'Press Start 2P', cursive",
                 color: '#FFD600',
@@ -680,7 +687,7 @@ export default function Home() {
                 className="text-yellow-300 font-bold text-xs md:text-sm bg-black/50 inline-block px-3 md:px-4 py-2 border-2 md:border-4 border-yellow-500 retro-shadow"
                 style={{ fontFamily: 'monospace' }}
               >
-                PLAYER: <span className="text-red-400">{user.full_name || user.email?.split('@')[0] || 'HERO'}</span>
+                PLAYER: <span className="text-red-400">{user.full_name || 'HERO'}</span>
                 <motion.span
                   animate={{ scale: [1, 1.3, 1] }}
                   transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
@@ -698,7 +705,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="mb-4"
+                className="mb-3 md:mb-4"
               >
                 <Alert className="bg-red-600 border-2 md:border-4 border-red-800 retro-shadow">
                   <AlertDescription className="text-white font-bold text-xs md:text-sm" style={{ fontFamily: 'monospace' }}>
@@ -722,33 +729,50 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Tabs defaultValue="budget" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-black/80 border-2 md:border-4 border-yellow-400 mb-3 md:mb-4 retro-shadow p-1" style={{ fontFamily: 'monospace' }}>
-                <TabsTrigger value="budget" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-black transition-all">
-                  <Coins className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">BUDGET</span>
+            <Tabs defaultValue="dashboard" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 gap-1 bg-black/80 border-2 md:border-4 border-yellow-400 mb-3 md:mb-4 p-1 retro-shadow" style={{ fontFamily: 'monospace' }}>
+                <TabsTrigger value="dashboard" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
+                  <LayoutDashboard className="w-3 h-3 md:mr-1" />
+                  <span className="hidden md:inline">HOME</span>
                 </TabsTrigger>
-                <TabsTrigger value="convert" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-orange-400 data-[state=active]:text-black transition-all">
-                  <Globe className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">CONVERT</span>
+                <TabsTrigger value="budget" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
+                  <Coins className="w-3 h-3 md:mr-1" />
+                  <span className="hidden md:inline">BUDGET</span>
                 </TabsTrigger>
-                <TabsTrigger value="map" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-blue-400 data-[state=active]:text-black transition-all">
-                  <Map className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">MAP</span>
+                <TabsTrigger value="convert" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-orange-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
+                  <Globe className="w-3 h-3 md:mr-1" />
+                  <span className="hidden md:inline">CONVERT</span>
                 </TabsTrigger>
-                <TabsTrigger value="goals" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-red-400 data-[state=active]:text-black transition-all">
-                  <Target className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">GOALS</span>
+                <TabsTrigger value="map" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-blue-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
+                  <Map className="w-3 h-3 md:mr-1" />
+                  <span className="hidden md:inline">MAP</span>
                 </TabsTrigger>
-                <TabsTrigger value="wallet" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-green-400 data-[state=active]:text-black transition-all">
-                  <Wallet className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">WALLET</span>
+                <TabsTrigger value="goals" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-red-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
+                  <Target className="w-3 h-3 md:mr-1" />
+                  <span className="hidden md:inline">GOALS</span>
                 </TabsTrigger>
-                <TabsTrigger value="xrpl" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-pink-400 data-[state=active]:text-black transition-all">
-                  <Send className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">XRPL</span>
+                <TabsTrigger value="wallet" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-green-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
+                  <Wallet className="w-3 h-3 md:mr-1" />
+                  <span className="hidden md:inline">WALLET</span>
+                </TabsTrigger>
+                <TabsTrigger value="xrpl" className="text-[10px] md:text-xs font-bold data-[state=active]:bg-pink-400 data-[state=active]:text-black transition-all px-1 md:px-2 py-1.5 md:py-2">
+                  <Send className="w-3 h-3 md:mr-1" />
+                  <span className="hidden md:inline">XRPL</span>
                 </TabsTrigger>
               </TabsList>
+
+              <TabsContent value="dashboard">
+                <Dashboard
+                  user={user}
+                  walletAddress={walletAddress}
+                  balance={balance}
+                  income={income}
+                  expenses={expenses}
+                  missions={missions}
+                  mintedNFTs={mintedNFTs}
+                  cityData={cityData}
+                />
+              </TabsContent>
 
               <TabsContent value="budget">
                 <BudgetMission
@@ -824,7 +848,7 @@ export default function Home() {
             className="mt-4 md:mt-6 text-center"
           >
             <motion.div 
-              className="inline-flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-red-500 via-yellow-400 to-blue-500 border-2 md:border-4 border-black retro-shadow"
+              className="inline-flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-gradient-to-r from-red-500 via-yellow-400 to-blue-500 border-2 md:border-4 border-black retro-shadow"
               animate={{ 
                 y: [0, -5, 0]
               }}
@@ -832,7 +856,7 @@ export default function Home() {
               style={{ fontFamily: 'monospace' }}
             >
               <motion.span 
-                className="text-white text-[0.6rem] md:text-xs font-black"
+                className="text-white text-[10px] md:text-xs font-black"
                 animate={{ opacity: [1, 0.5, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
