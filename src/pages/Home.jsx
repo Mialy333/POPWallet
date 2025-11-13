@@ -133,6 +133,7 @@ export default function Home() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
+      // Load all saved data from user profile
       if (currentUser.monthly_income) setIncome(currentUser.monthly_income.toString());
       if (currentUser.monthly_expenses) setExpenses(currentUser.monthly_expenses.toString());
       if (currentUser.monthly_balance !== undefined) setBalance(currentUser.monthly_balance);
@@ -418,22 +419,22 @@ export default function Home() {
 
       const nftData = {
         smartSaver: {
-          name: '🏆 Smart Saver NFT',
+          name: '🏆 Smart Saver Badge',
           description: `Achievement Unlocked: Saved €${balance?.toFixed(2) || '50+'} in monthly budget`,
           level: 'LEVEL 1'
         },
         explorer: {
-          name: '🌍 Explorer NFT',
+          name: '🌍 Explorer Badge',
           description: 'Achievement Unlocked: Mastered international currency conversion',
           level: 'LEVEL 2'
         },
         planner: {
-          name: '🎯 Planner NFT',
+          name: '🎯 Planner Badge',
           description: 'Achievement Unlocked: Set strategic financial goals',
           level: 'LEVEL 3'
         },
         budgetExplorer: {
-          name: '💎 Budget Explorer NFT',
+          name: '💎 Blockchain Pioneer Badge',
           description: 'Achievement Unlocked: Completed cross-border payment simulation',
           level: 'LEVEL 4'
         }
@@ -446,7 +447,8 @@ export default function Home() {
           JSON.stringify({
             ...nftData[nftType],
             image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
-            mintedAt: new Date().toISOString()
+            mintedAt: new Date().toISOString(),
+            student: user?.full_name || user?.email
           })
         ),
         Flags: 8,
@@ -539,7 +541,7 @@ export default function Home() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center p-4">
         <div className="text-center">
           <motion.div
             animate={{ 
@@ -551,7 +553,7 @@ export default function Home() {
           >
             💰
           </motion.div>
-          <p className="text-yellow-400 font-black text-xl tracking-wider" style={{ fontFamily: 'monospace' }}>
+          <p className="text-yellow-400 font-black text-lg md:text-xl tracking-wider" style={{ fontFamily: 'monospace' }}>
             LOADING POP WALLET...
           </p>
         </div>
@@ -577,13 +579,8 @@ export default function Home() {
             8px 8px 0px rgba(255, 215, 0, 0.3);
         }
         
-        @keyframes float-coins {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        
         .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
+          width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: rgba(0, 0, 0, 0.5);
@@ -593,18 +590,15 @@ export default function Home() {
           background: linear-gradient(to bottom, #FFD600, #FF1744);
           border-radius: 10px;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #FFE44D, #FF4569);
-        }
       `}</style>
 
       {/* Floating Retro Elements */}
       <div className="absolute inset-0 pixel-grid opacity-50"></div>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(15)].map((_, i) => (
+        {[...Array(10)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute text-4xl"
+            className="absolute text-2xl md:text-4xl"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`
@@ -628,10 +622,10 @@ export default function Home() {
       <AnimatePresence>
         {showConfetti && (
           <div className="fixed inset-0 pointer-events-none z-50">
-            {[...Array(50)].map((_, i) => (
+            {[...Array(40)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute text-3xl"
+                className="absolute text-2xl md:text-3xl"
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: '-10%'
@@ -651,20 +645,20 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 p-4 md:p-6">
+      <div className="relative z-10 p-3 md:p-6">
         <div className="max-w-7xl mx-auto">
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, type: "spring" }}
-            className="text-center mb-6"
+            className="text-center mb-4 md:mb-6"
           >
             <motion.h1 
-              className="text-4xl md:text-6xl font-black mb-3 tracking-wider"
+              className="text-3xl md:text-5xl lg:text-6xl font-black mb-2 md:mb-3 tracking-wider"
               style={{
                 fontFamily: "'Press Start 2P', cursive",
                 color: '#FFD600',
-                textShadow: '4px 4px 0px #FF1744, 8px 8px 0px #000'
+                textShadow: '3px 3px 0px #FF1744, 6px 6px 0px #000'
               }}
               animate={{ 
                 scale: [1, 1.05, 1],
@@ -683,10 +677,10 @@ export default function Home() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-yellow-300 font-bold text-sm bg-black/50 inline-block px-4 py-2 border-4 border-yellow-500 retro-shadow"
+                className="text-yellow-300 font-bold text-xs md:text-sm bg-black/50 inline-block px-3 md:px-4 py-2 border-2 md:border-4 border-yellow-500 retro-shadow"
                 style={{ fontFamily: 'monospace' }}
               >
-                PLAYER: <span className="text-red-400">{user.full_name || 'HERO'}</span>
+                PLAYER: <span className="text-red-400">{user.full_name || user.email?.split('@')[0] || 'HERO'}</span>
                 <motion.span
                   animate={{ scale: [1, 1.3, 1] }}
                   transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
@@ -706,8 +700,8 @@ export default function Home() {
                 exit={{ opacity: 0, y: -20 }}
                 className="mb-4"
               >
-                <Alert className="bg-red-600 border-4 border-red-800 retro-shadow">
-                  <AlertDescription className="text-white font-bold text-sm" style={{ fontFamily: 'monospace' }}>
+                <Alert className="bg-red-600 border-2 md:border-4 border-red-800 retro-shadow">
+                  <AlertDescription className="text-white font-bold text-xs md:text-sm" style={{ fontFamily: 'monospace' }}>
                     ⚠️ {error}
                   </AlertDescription>
                 </Alert>
@@ -729,30 +723,30 @@ export default function Home() {
             transition={{ delay: 0.4 }}
           >
             <Tabs defaultValue="budget" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-black/80 border-4 border-yellow-400 mb-4 retro-shadow" style={{ fontFamily: 'monospace' }}>
-                <TabsTrigger value="budget" className="text-xs font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-black transition-all border-r-2 border-yellow-600">
+              <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-black/80 border-2 md:border-4 border-yellow-400 mb-3 md:mb-4 retro-shadow p-1" style={{ fontFamily: 'monospace' }}>
+                <TabsTrigger value="budget" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-black transition-all">
                   <Coins className="w-3 h-3 mr-1" />
-                  BUDGET
+                  <span className="hidden sm:inline">BUDGET</span>
                 </TabsTrigger>
-                <TabsTrigger value="convert" className="text-xs font-bold data-[state=active]:bg-orange-400 data-[state=active]:text-black transition-all border-r-2 border-yellow-600">
+                <TabsTrigger value="convert" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-orange-400 data-[state=active]:text-black transition-all">
                   <Globe className="w-3 h-3 mr-1" />
-                  CONVERT
+                  <span className="hidden sm:inline">CONVERT</span>
                 </TabsTrigger>
-                <TabsTrigger value="map" className="text-xs font-bold data-[state=active]:bg-blue-400 data-[state=active]:text-black transition-all border-r-2 border-yellow-600">
+                <TabsTrigger value="map" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-blue-400 data-[state=active]:text-black transition-all">
                   <Map className="w-3 h-3 mr-1" />
-                  MAP
+                  <span className="hidden sm:inline">MAP</span>
                 </TabsTrigger>
-                <TabsTrigger value="goals" className="text-xs font-bold data-[state=active]:bg-red-400 data-[state=active]:text-black transition-all border-r-2 border-yellow-600">
+                <TabsTrigger value="goals" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-red-400 data-[state=active]:text-black transition-all">
                   <Target className="w-3 h-3 mr-1" />
-                  GOALS
+                  <span className="hidden sm:inline">GOALS</span>
                 </TabsTrigger>
-                <TabsTrigger value="wallet" className="text-xs font-bold data-[state=active]:bg-green-400 data-[state=active]:text-black transition-all border-r-2 border-yellow-600">
+                <TabsTrigger value="wallet" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-green-400 data-[state=active]:text-black transition-all">
                   <Wallet className="w-3 h-3 mr-1" />
-                  WALLET
+                  <span className="hidden sm:inline">WALLET</span>
                 </TabsTrigger>
-                <TabsTrigger value="xrpl" className="text-xs font-bold data-[state=active]:bg-pink-400 data-[state=active]:text-black transition-all">
+                <TabsTrigger value="xrpl" className="text-[0.6rem] md:text-xs font-bold data-[state=active]:bg-pink-400 data-[state=active]:text-black transition-all">
                   <Send className="w-3 h-3 mr-1" />
-                  XRPL
+                  <span className="hidden sm:inline">XRPL</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -827,10 +821,10 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="mt-6 text-center"
+            className="mt-4 md:mt-6 text-center"
           >
             <motion.div 
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 via-yellow-400 to-blue-500 border-4 border-black retro-shadow"
+              className="inline-flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-red-500 via-yellow-400 to-blue-500 border-2 md:border-4 border-black retro-shadow"
               animate={{ 
                 y: [0, -5, 0]
               }}
@@ -838,7 +832,7 @@ export default function Home() {
               style={{ fontFamily: 'monospace' }}
             >
               <motion.span 
-                className="text-white text-xs font-black"
+                className="text-white text-[0.6rem] md:text-xs font-black"
                 animate={{ opacity: [1, 0.5, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
