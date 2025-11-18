@@ -99,23 +99,26 @@ export const useXaman = () => {
     const isMobile = checkMobile();
 
     try {
-      // Create return URL for current page
-      const baseReturnUrl =
-        typeof window !== 'undefined'
-          ? window.location.href.split('?')[0]
-          : '';
+      // Create payload options
+      const payloadOptions = {};
+
+      // Only add return_url for mobile - desktop uses WebSocket
+      if (isMobile) {
+        const baseReturnUrl =
+          typeof window !== 'undefined'
+            ? window.location.href.split('?')[0]
+            : '';
+        payloadOptions.return_url = {
+          app: `${baseReturnUrl}?xaman_payload={id}&journey=connect`,
+          web: `${baseReturnUrl}?xaman_payload={id}&journey=connect`,
+        };
+      }
 
       const data = await xamanCreatePayload({
         transaction: {
           TransactionType: 'SignIn',
-          SignIn: 'true',
         },
-        options: {
-          return_url: {
-            app: `${baseReturnUrl}?xaman_payload={id}&journey=connect`,
-            web: `${baseReturnUrl}?xaman_payload={id}&journey=connect`,
-          },
-        },
+        options: payloadOptions,
       });
 
       setQrcode(data.payload.refs.qr_png);
@@ -205,20 +208,24 @@ export const useXaman = () => {
       const isMobile = checkMobile();
 
       try {
-        // Create return URL for current page
-        const baseReturnUrl =
-          typeof window !== 'undefined'
-            ? window.location.href.split('?')[0]
-            : '';
+        // Create payload options
+        const payloadOptions = {};
+
+        // Only add return_url for mobile - desktop uses WebSocket
+        if (isMobile) {
+          const baseReturnUrl =
+            typeof window !== 'undefined'
+              ? window.location.href.split('?')[0]
+              : '';
+          payloadOptions.return_url = {
+            app: `${baseReturnUrl}?xaman_payload={id}&journey=transaction`,
+            web: `${baseReturnUrl}?xaman_payload={id}&journey=transaction`,
+          };
+        }
 
         const data = await xamanCreatePayload({
           transaction,
-          options: {
-            return_url: {
-              app: `${baseReturnUrl}?xaman_payload={id}&journey=transaction`,
-              web: `${baseReturnUrl}?xaman_payload={id}&journey=transaction`,
-            },
-          },
+          options: payloadOptions,
         });
 
         if (isMobile) {

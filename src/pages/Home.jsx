@@ -169,6 +169,16 @@ export default function Home() {
     }
   }, [xamanAddress]);
 
+  // Close QR modal when wallet connects successfully
+  useEffect(() => {
+    if (xamanAddress && showXamanQR) {
+      // Small delay to show the connection was successful
+      setTimeout(() => {
+        setShowXamanQR(false);
+      }, 500);
+    }
+  }, [xamanAddress, showXamanQR]);
+
   const loadUserData = async () => {
     try {
       setIsLoadingUser(true);
@@ -391,6 +401,8 @@ export default function Home() {
     } catch (err) {
       setError('Failed to connect XAMAN wallet: ' + err.message);
       console.error('Xaman connection error:', err);
+      // Close QR modal on error
+      setShowXamanQR(false);
     }
   };
 
@@ -649,6 +661,8 @@ export default function Home() {
     } catch (err) {
       setError('NFT minting error: ' + err.message);
       console.error(err);
+      // Close QR modal on error too
+      setShowXamanQR(false);
     } finally {
       setCurrentlyMinting(null);
     }

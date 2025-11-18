@@ -163,7 +163,7 @@ export default function WalletPassport({
               <Alert className="bg-green-900/50 border-2 border-green-500">
                 <CheckCircle2 className="w-4 h-4 text-green-400" />
                 <AlertDescription className="text-green-200 text-xs font-bold" style={{ fontFamily: 'monospace' }}>
-                  ✅ Your XAMAN wallet is connected securely!
+                  Your XAMAN wallet is connected securely!
                 </AlertDescription>
               </Alert>
             </CardContent>
