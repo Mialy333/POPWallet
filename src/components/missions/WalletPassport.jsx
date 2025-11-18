@@ -1,28 +1,24 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, Zap, Trophy, Lock, CheckCircle2, Copy, ExternalLink, Smartphone, AlertTriangle } from "lucide-react";
+import { motion } from "framer-motion";
+import { Wallet, Zap, Trophy, Lock, CheckCircle2, Copy, ExternalLink, Smartphone } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export default function WalletPassport({ 
-  walletAddress, 
-  walletSeed, 
-  isConnecting, 
-  xrplLoaded, 
-  missions, 
-  mintedNFTs, 
-  currentlyMinting, 
+export default function WalletPassport({
+  walletAddress,
+  walletSeed,
+  isConnecting,
+  xrplLoaded,
+  missions,
+  mintedNFTs,
+  currentlyMinting,
   onGenerateWallet,
   onConnectXaman,
-  onMintNFT 
+  onMintNFT
 }) {
-  const [manualAddress, setManualAddress] = useState('');
-  const [showSeed, setShowSeed] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [connectionMethod, setConnectionMethod] = useState(null); // 'xaman', 'generate', 'manual'
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -37,16 +33,6 @@ export default function WalletPassport({
       // Fallback: Open XAMAN deep link
       const deepLink = 'xumm://connect';
       window.open(deepLink, '_blank');
-    }
-  };
-
-  const handleManualConnect = () => {
-    if (manualAddress.length > 0) {
-      // Validate it's a proper XRPL address (starts with 'r' and is 25-35 chars)
-      if (manualAddress.startsWith('r') && manualAddress.length >= 25 && manualAddress.length <= 35) {
-        onConnectXaman(manualAddress);
-        setConnectionMethod('manual');
-      }
     }
   };
 
@@ -73,11 +59,11 @@ export default function WalletPassport({
             <CardContent className="p-3 md:p-4 space-y-3">
               <Alert className="bg-blue-900/50 border-2 border-blue-400">
                 <AlertDescription className="text-blue-200 text-xs md:text-sm font-bold" style={{ fontFamily: 'monospace' }}>
-                  💡 Choose how to connect your XRP Ledger wallet
+                  💡 Connect your Xaman wallet to mint NFTs on the XRP Ledger
                 </AlertDescription>
               </Alert>
 
-              {/* Option 1: XAMAN Wallet (Recommended) */}
+              {/* XAMAN Wallet Connection */}
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Card className="bg-black/40 border-2 border-green-500 cursor-pointer hover:border-green-400 transition-all">
                   <CardContent className="p-3 md:p-4">
@@ -90,14 +76,11 @@ export default function WalletPassport({
                           <h3 className="text-green-400 font-black text-sm md:text-base" style={{ fontFamily: 'monospace' }}>
                             XAMAN WALLET
                           </h3>
-                          <span className="bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5" style={{ fontFamily: 'monospace' }}>
-                            RECOMMENDED
-                          </span>
                         </div>
                         <p className="text-gray-300 text-xs md:text-sm mb-3 font-bold" style={{ fontFamily: 'monospace' }}>
                           ✅ Secure mobile wallet<br/>
                           ✅ Real XRPL transactions<br/>
-                          ✅ Easy to use
+                          ✅ Mint NFT badges
                         </p>
                         <Button
                           onClick={handleConnectXaman}
@@ -126,83 +109,6 @@ export default function WalletPassport({
                         <p className="text-gray-400 text-[10px] mt-2 text-center" style={{ fontFamily: 'monospace' }}>
                           Don't have XAMAN? <a href="https://xaman.app" target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 underline">Download here</a>
                         </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Option 2: Manual Address Entry */}
-              <motion.div whileHover={{ scale: 1.02 }}>
-                <Card className="bg-black/40 border-2 border-cyan-500">
-                  <CardContent className="p-3 md:p-4">
-                    <h3 className="text-cyan-400 font-black text-sm md:text-base mb-2" style={{ fontFamily: 'monospace' }}>
-                      📋 ENTER WALLET ADDRESS
-                    </h3>
-                    <p className="text-gray-300 text-xs mb-3 font-bold" style={{ fontFamily: 'monospace' }}>
-                      Already have an XRP address? Paste it here
-                    </p>
-                    <div className="space-y-2">
-                      <Input
-                        placeholder="r... (your XRP address)"
-                        value={manualAddress}
-                        onChange={(e) => setManualAddress(e.target.value)}
-                        className="border-2 border-cyan-500/50 bg-black/50 text-cyan-100 font-bold text-xs md:text-sm"
-                        style={{ fontFamily: 'monospace' }}
-                      />
-                      <Button
-                        onClick={handleManualConnect}
-                        disabled={!manualAddress || manualAddress.length < 25}
-                        className="w-full bg-cyan-500 hover:bg-cyan-400 text-white border-2 border-black font-black text-xs md:text-sm"
-                        style={{ fontFamily: 'monospace' }}
-                      >
-                        CONNECT ADDRESS
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Option 3: Generate Test Wallet */}
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Card className="bg-black/40 border-2 border-yellow-500">
-                  <CardContent className="p-3 md:p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-yellow-500 border-2 border-black flex items-center justify-center flex-shrink-0">
-                        <Zap className="w-6 h-6 text-black" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-yellow-400 font-black text-sm md:text-base" style={{ fontFamily: 'monospace' }}>
-                            GENERATE TEST WALLET
-                          </h3>
-                          <span className="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5" style={{ fontFamily: 'monospace' }}>
-                            TESTNET
-                          </span>
-                        </div>
-                        <p className="text-gray-300 text-xs md:text-sm mb-3 font-bold" style={{ fontFamily: 'monospace' }}>
-                          ⚠️ For testing only<br/>
-                          🎮 Practice mode<br/>
-                          💡 No real funds
-                        </p>
-                        <Button
-                          onClick={() => {
-                            onGenerateWallet();
-                            setConnectionMethod('generate');
-                          }}
-                          disabled={!xrplLoaded || isConnecting}
-                          className="w-full bg-yellow-500 hover:bg-yellow-400 text-black border-2 border-black font-black text-xs md:text-sm"
-                          style={{ fontFamily: 'monospace' }}
-                        >
-                          {!xrplLoaded ? (
-                            'LOADING...'
-                          ) : (
-                            <>
-                              <Zap className="w-4 h-4 mr-2" />
-                              GENERATE TESTNET
-                            </>
-                          )}
-                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -254,23 +160,12 @@ export default function WalletPassport({
                 </a>
               </div>
 
-              {walletSeed && connectionMethod === 'generate' && (
-                <Alert className="bg-red-900/50 border-2 border-red-500">
-                  <AlertTriangle className="w-4 h-4 text-red-400" />
-                  <AlertDescription className="text-red-200 text-xs font-bold" style={{ fontFamily: 'monospace' }}>
-                    ⚠️ TESTNET WALLET - For practice only! Don't send real funds here.
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {connectionMethod === 'xaman' && (
-                <Alert className="bg-green-900/50 border-2 border-green-500">
-                  <CheckCircle2 className="w-4 h-4 text-green-400" />
-                  <AlertDescription className="text-green-200 text-xs font-bold" style={{ fontFamily: 'monospace' }}>
-                    ✅ REAL WALLET - Your XAMAN wallet is connected securely!
-                  </AlertDescription>
-                </Alert>
-              )}
+              <Alert className="bg-green-900/50 border-2 border-green-500">
+                <CheckCircle2 className="w-4 h-4 text-green-400" />
+                <AlertDescription className="text-green-200 text-xs font-bold" style={{ fontFamily: 'monospace' }}>
+                  ✅ Your XAMAN wallet is connected securely!
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
         </motion.div>

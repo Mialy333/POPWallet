@@ -369,37 +369,23 @@ export default function Home() {
     }
   };
 
-  const connectXamanWallet = async (manualAddress = null) => {
+  const connectXamanWallet = async () => {
     try {
       setError(null);
 
-      if (manualAddress) {
-        // Manual address entry
-        setWalletAddress(manualAddress);
-        setConnectionMethod('manual');
+      // Use Xaman wallet
+      setShowXamanQR(true);
+      await connectXaman();
 
+      // After connection, save to database
+      if (xamanAddress) {
         await saveUserData({
-          xrpl_wallet_address: manualAddress,
-          wallet_connection_method: 'manual'
+          xrpl_wallet_address: xamanAddress,
+          wallet_connection_method: 'xaman'
         });
 
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
-      } else {
-        // Use Xaman wallet
-        setShowXamanQR(true);
-        await connectXaman();
-
-        // After connection, save to database
-        if (xamanAddress) {
-          await saveUserData({
-            xrpl_wallet_address: xamanAddress,
-            wallet_connection_method: 'xaman'
-          });
-
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000);
-        }
       }
 
     } catch (err) {
