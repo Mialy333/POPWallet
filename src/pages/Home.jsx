@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Coins, Globe, Target, Send, Wallet, Map, LayoutDashboard } from "lucide-react";
 import { base44 } from '@/api/base44Client';
+import { useXaman } from '../hooks/useXaman';
+import XamanQRModal from '../components/XamanQRModal';
 
 import Dashboard from '../components/Dashboard';
 import BudgetMission from '../components/missions/BudgetMission';
@@ -83,26 +85,39 @@ const CITY_COSTS = {
 };
 
 export default function Home() {
+  // Xaman hook for wallet integration
+  const {
+    qrcode,
+    jumpLink,
+    xrpAddress: xamanAddress,
+    isConnecting: xamanConnecting,
+    isSigning: xamanSigning,
+    connectXaman,
+    signTransactionXaman,
+    handleXamanUrlParams,
+    checkMobile,
+  } = useXaman();
+
   const [user, setUser] = useState(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [currentTab, setCurrentTab] = useState('dashboard');
-  
+
   const [income, setIncome] = useState('');
   const [expenses, setExpenses] = useState('');
   const [balance, setBalance] = useState(null);
-  
+
   const [selectedCity, setSelectedCity] = useState('lisbon');
-  
+
   const [localCurrency, setLocalCurrency] = useState('MGA');
   const [localAmount, setLocalAmount] = useState('');
   const [convertedEuro, setConvertedEuro] = useState(null);
   const [realExchangeRate, setRealExchangeRate] = useState(null);
   const [isLoadingRate, setIsLoadingRate] = useState(false);
   const [converterUsed, setConverterUsed] = useState(false);
-  
+
   const [goals, setGoals] = useState(['', '', '']);
   const [goalsSet, setGoalsSet] = useState(false);
-  
+
   const [walletAddress, setWalletAddress] = useState(null);
   const [walletSeed, setWalletSeed] = useState(null);
   const [connectionMethod, setConnectionMethod] = useState(null);
@@ -110,7 +125,7 @@ export default function Home() {
   const [xrplTransactionDone, setXrplTransactionDone] = useState(false);
   const [isSimulatingTx, setIsSimulatingTx] = useState(false);
   const [txHash, setTxHash] = useState(null);
-  
+
   const [mintedNFTs, setMintedNFTs] = useState({
     smartSaver: false,
     explorer: false,
@@ -118,14 +133,41 @@ export default function Home() {
     budgetExplorer: false
   });
   const [currentlyMinting, setCurrentlyMinting] = useState(null);
-  
+
   const [error, setError] = useState(null);
   const [xrplLoaded, setXrplLoaded] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showXamanQR, setShowXamanQR] = useState(false);
 
   useEffect(() => {
     loadUserData();
   }, []);
+
+  // Handle Xaman URL params when returning from mobile app
+  useEffect(() => {
+    const checkUrlParams = async () => {
+      const result = await handleXamanUrlParams();
+      if (result.success) {
+        setWalletAddress(result.account);
+        setConnectionMethod('xaman');
+        await saveUserData({
+          xrpl_wallet_address: result.account,
+          wallet_connection_method: 'xaman',
+        });
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      }
+    };
+    checkUrlParams();
+  }, [handleXamanUrlParams]);
+
+  // Sync Xaman address with local state
+  useEffect(() => {
+    if (xamanAddress && !walletAddress) {
+      setWalletAddress(xamanAddress);
+      setConnectionMethod('xaman');
+    }
+  }, [xamanAddress]);
 
   const loadUserData = async () => {
     try {
@@ -329,30 +371,40 @@ export default function Home() {
 
   const connectXamanWallet = async (manualAddress = null) => {
     try {
-      setIsConnecting(true);
       setError(null);
-      
+
       if (manualAddress) {
+        // Manual address entry
         setWalletAddress(manualAddress);
         setConnectionMethod('manual');
-        
+
         await saveUserData({
           xrpl_wallet_address: manualAddress,
           wallet_connection_method: 'manual'
         });
-        
+
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       } else {
-        const xamanDeepLink = `xumm://authorize`;
-        setError('XAMAN Integration: Please install XAMAN app and connect manually, or enter your XRP address in the manual input field.');
-        setConnectionMethod('xaman');
+        // Use Xaman wallet
+        setShowXamanQR(true);
+        await connectXaman();
+
+        // After connection, save to database
+        if (xamanAddress) {
+          await saveUserData({
+            xrpl_wallet_address: xamanAddress,
+            wallet_connection_method: 'xaman'
+          });
+
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
+        }
       }
-      
+
     } catch (err) {
       setError('Failed to connect XAMAN wallet: ' + err.message);
-    } finally {
-      setIsConnecting(false);
+      console.error('Xaman connection error:', err);
     }
   };
 
@@ -536,21 +588,75 @@ export default function Home() {
           setError('NFT minting failed: ' + result.result.meta.TransactionResult);
         }
       } else {
-        setError('💡 XAMAN USERS: NFT minting will open XAMAN app for signing. Full SDK integration coming soon!');
-        
-        setTimeout(() => {
+        // Use Xaman for signing (for real wallet connections)
+        const nftData = {
+          smartSaver: {
+            name: '🏆 Smart Saver NFT',
+            description: `Achievement: Saved €${balance?.toFixed(2) || '50+'} monthly`,
+            level: 'LEVEL 1'
+          },
+          explorer: {
+            name: '🌍 Explorer NFT',
+            description: 'Achievement: Currency conversion master',
+            level: 'LEVEL 2'
+          },
+          planner: {
+            name: '🎯 Planner NFT',
+            description: 'Achievement: Strategic goal setter',
+            level: 'LEVEL 3'
+          },
+          budgetExplorer: {
+            name: '💎 Blockchain Pioneer NFT',
+            description: 'Achievement: Cross-border payment completed',
+            level: 'LEVEL 4'
+          }
+        };
+
+        const nftMintTx = {
+          TransactionType: 'NFTokenMint',
+          Account: walletAddress,
+          URI: window.xrpl.convertStringToHex(
+            JSON.stringify({
+              ...nftData[nftType],
+              image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
+              mintedAt: new Date().toISOString(),
+              student: user?.full_name || user?.email
+            })
+          ),
+          Flags: 8,
+          TransferFee: 0,
+          NFTokenTaxon: 0
+        };
+
+        // Show QR modal for Xaman signing
+        setShowXamanQR(true);
+
+        // Sign with Xaman
+        const signedTxJson = await signTransactionXaman(nftMintTx);
+
+        // Close QR modal
+        setShowXamanQR(false);
+
+        // Check if signed successfully
+        if (signedTxJson?.payload?.response?.txid) {
           setMintedNFTs(prev => ({ ...prev, [nftType]: true }));
+
           const nftFieldMap = {
             smartSaver: 'nft_smart_saver',
             explorer: 'nft_explorer',
             planner: 'nft_planner',
             budgetExplorer: 'nft_budget_explorer'
           };
-          saveUserData({ [nftFieldMap[nftType]]: true });
+
+          await saveUserData({
+            [nftFieldMap[nftType]]: true
+          });
+
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 5000);
-          setError(null);
-        }, 2000);
+        } else {
+          throw new Error('Transaction was not signed successfully');
+        }
       }
 
       await client.disconnect();
@@ -848,6 +954,20 @@ export default function Home() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Xaman QR Code Modal */}
+      <XamanQRModal
+        open={showXamanQR}
+        onOpenChange={setShowXamanQR}
+        qrcode={qrcode}
+        title={currentlyMinting ? 'Sign NFT Mint with Xaman' : 'Connect with Xaman'}
+        description={
+          currentlyMinting
+            ? 'Scan the QR code or open Xaman on your device to sign the NFT minting transaction.'
+            : 'Scan the QR code or open Xaman on your device to connect your wallet.'
+        }
+        isMobile={checkMobile()}
+      />
     </div>
   );
 }

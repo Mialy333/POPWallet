@@ -11,5 +11,13 @@ export default defineConfig({
       legacySDKImports: process.env.BASE44_LEGACY_SDK_IMPORTS === 'true'
     }),
     react(),
-  ]
+  ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      }
+    }
+  }
 });

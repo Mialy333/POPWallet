@@ -32,36 +32,6 @@ export default function NFTMintBridge({
       return;
     }
 
-    // ============================================
-    // FUTURE XAMAN SDK INTEGRATION POINT
-    // ============================================
-    // 
-    // Step 1: Initialize Xaman SDK
-    // const xaman = new XamanSdk('YOUR_API_KEY');
-    //
-    // Step 2: Create NFT mint payload
-    // const payload = {
-    //   txjson: {
-    //     TransactionType: 'NFTokenMint',
-    //     Account: userWallet,
-    //     URI: xrpl.convertStringToHex(JSON.stringify(nft)),
-    //     Flags: 8,
-    //     TransferFee: 0,
-    //     NFTokenTaxon: 0
-    //   }
-    // };
-    //
-    // Step 3: Create sign request
-    // const request = await xaman.payload.create(payload);
-    //
-    // Step 4: Open Xaman app for signing
-    // window.location.href = request.next.always;
-    //
-    // Step 5: Monitor transaction status
-    // const result = await xaman.payload.subscribe(request.uuid);
-    //
-    // ============================================
-
     setMintingNFT(nft.id);
     
     try {
