@@ -95,6 +95,7 @@ export default function Home() {
     connectXaman,
     signTransactionXaman,
     handleXamanUrlParams,
+    disconnect: disconnectXaman,
     checkMobile,
   } = useXaman();
 
@@ -169,15 +170,15 @@ export default function Home() {
     }
   }, [xamanAddress]);
 
-  // Close QR modal when wallet connects successfully
+  // Close QR modal when wallet connects successfully (only for initial connection)
   useEffect(() => {
-    if (xamanAddress && showXamanQR) {
+    if (xamanAddress && showXamanQR && !walletAddress && !currentlyMinting) {
       // Small delay to show the connection was successful
       setTimeout(() => {
         setShowXamanQR(false);
       }, 500);
     }
-  }, [xamanAddress, showXamanQR]);
+  }, [xamanAddress, showXamanQR, walletAddress, currentlyMinting]);
 
   const loadUserData = async () => {
     try {
@@ -406,6 +407,29 @@ export default function Home() {
     }
   };
 
+  const disconnectWallet = async () => {
+    try {
+      // Disconnect from Xaman hook
+      disconnectXaman();
+
+      // Clear local state
+      setWalletAddress(null);
+      setWalletSeed(null);
+      setConnectionMethod(null);
+
+      // Update database
+      await saveUserData({
+        xrpl_wallet_address: null,
+        wallet_connection_method: null
+      });
+
+      setError(null);
+    } catch (err) {
+      setError('Failed to disconnect wallet: ' + err.message);
+      console.error('Disconnect error:', err);
+    }
+  };
+
   const simulateXRPLTransaction = async () => {
     if (!xrplLoaded || !window.xrpl) {
       setError('XRP Ledger library not loaded yet');
@@ -527,22 +551,26 @@ export default function Home() {
           smartSaver: {
             name: '🏆 Smart Saver NFT',
             description: `Achievement: Saved €${balance?.toFixed(2) || '50+'} monthly`,
-            level: 'LEVEL 1'
+            level: 'LEVEL 1',
+            image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400' // Piggy bank
           },
           explorer: {
             name: '🌍 Explorer NFT',
             description: 'Achievement: Currency conversion master',
-            level: 'LEVEL 2'
+            level: 'LEVEL 2',
+            image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400' // Globe/world
           },
           planner: {
             name: '🎯 Planner NFT',
             description: 'Achievement: Strategic goal setter',
-            level: 'LEVEL 3'
+            level: 'LEVEL 3',
+            image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=400' // Goals/target
           },
           budgetExplorer: {
             name: '💎 Blockchain Pioneer NFT',
             description: 'Achievement: Cross-border payment completed',
-            level: 'LEVEL 4'
+            level: 'LEVEL 4',
+            image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400' // Blockchain/crypto
           }
         };
 
@@ -552,7 +580,6 @@ export default function Home() {
           URI: window.xrpl.convertStringToHex(
             JSON.stringify({
               ...nftData[nftType],
-              image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
               mintedAt: new Date().toISOString(),
               student: user?.full_name || user?.email
             })
@@ -591,22 +618,26 @@ export default function Home() {
           smartSaver: {
             name: '🏆 Smart Saver NFT',
             description: `Achievement: Saved €${balance?.toFixed(2) || '50+'} monthly`,
-            level: 'LEVEL 1'
+            level: 'LEVEL 1',
+            image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400' // Piggy bank
           },
           explorer: {
             name: '🌍 Explorer NFT',
             description: 'Achievement: Currency conversion master',
-            level: 'LEVEL 2'
+            level: 'LEVEL 2',
+            image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=400' // Globe/world
           },
           planner: {
             name: '🎯 Planner NFT',
             description: 'Achievement: Strategic goal setter',
-            level: 'LEVEL 3'
+            level: 'LEVEL 3',
+            image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=400' // Goals/target
           },
           budgetExplorer: {
             name: '💎 Blockchain Pioneer NFT',
             description: 'Achievement: Cross-border payment completed',
-            level: 'LEVEL 4'
+            level: 'LEVEL 4',
+            image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400' // Blockchain/crypto
           }
         };
 
@@ -616,7 +647,6 @@ export default function Home() {
           URI: window.xrpl.convertStringToHex(
             JSON.stringify({
               ...nftData[nftType],
-              image: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400',
               mintedAt: new Date().toISOString(),
               student: user?.full_name || user?.email
             })
@@ -936,6 +966,7 @@ export default function Home() {
               onGenerateWallet={generateWallet}
               onConnectXaman={connectXamanWallet}
               onMintNFT={mintNFT}
+              onDisconnect={disconnectWallet}
             />
           </TabsContent>
 

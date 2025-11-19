@@ -16,7 +16,8 @@ export default function WalletPassport({
   currentlyMinting,
   onGenerateWallet,
   onConnectXaman,
-  onMintNFT
+  onMintNFT,
+  onDisconnect
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -57,9 +58,16 @@ export default function WalletPassport({
               </CardTitle>
             </CardHeader>
             <CardContent className="p-3 md:p-4 space-y-3">
+              <Alert className="bg-orange-900/50 border-2 border-orange-500">
+                <AlertDescription className="text-orange-200 text-xs md:text-sm font-bold" style={{ fontFamily: 'monospace' }}>
+                  ⚠️ TESTNET MODE - Make sure your Xaman wallet is switched to Testnet before connecting!
+                </AlertDescription>
+              </Alert>
+
               <Alert className="bg-blue-900/50 border-2 border-blue-400">
                 <AlertDescription className="text-blue-200 text-xs md:text-sm font-bold" style={{ fontFamily: 'monospace' }}>
-                  💡 Connect your Xaman wallet to mint NFTs on the XRP Ledger
+                  💡 How to switch Xaman to Testnet:<br/>
+                  Settings → Advanced → Node → Select "Testnet"
                 </AlertDescription>
               </Alert>
 
@@ -79,8 +87,8 @@ export default function WalletPassport({
                         </div>
                         <p className="text-gray-300 text-xs md:text-sm mb-3 font-bold" style={{ fontFamily: 'monospace' }}>
                           ✅ Secure mobile wallet<br/>
-                          ✅ Real XRPL transactions<br/>
-                          ✅ Mint NFT badges
+                          ✅ XRPL Testnet mode<br/>
+                          ✅ Mint test NFT badges
                         </p>
                         <Button
                           onClick={handleConnectXaman}
@@ -150,22 +158,31 @@ export default function WalletPassport({
                   </Button>
                 </div>
                 <a
-                  href={`https://livenet.xrpl.org/accounts/${walletAddress}`}
+                  href={`https://testnet.xrpl.org/accounts/${walletAddress}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-cyan-400 hover:text-cyan-300 text-xs font-bold mt-2 inline-flex items-center gap-1"
                   style={{ fontFamily: 'monospace' }}
                 >
-                  VIEW ON EXPLORER <ExternalLink className="w-3 h-3" />
+                  VIEW ON TESTNET EXPLORER <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
 
-              <Alert className="bg-green-900/50 border-2 border-green-500">
-                <CheckCircle2 className="w-4 h-4 text-green-400" />
-                <AlertDescription className="text-green-200 text-xs font-bold" style={{ fontFamily: 'monospace' }}>
-                  Your XAMAN wallet is connected securely!
+              <Alert className="bg-orange-900/50 border-2 border-orange-500">
+                <AlertDescription className="text-orange-200 text-xs font-bold" style={{ fontFamily: 'monospace' }}>
+                  ⚠️ TESTNET MODE - Connected to XRPL Testnet. NFTs minted here are for testing only!
                 </AlertDescription>
               </Alert>
+
+              {/* Disconnect Button */}
+              <Button
+                onClick={onDisconnect}
+                className="w-full bg-red-600 hover:bg-red-500 text-white border-2 border-black font-black text-xs md:text-sm"
+                style={{ fontFamily: 'monospace' }}
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                DISCONNECT WALLET
+              </Button>
             </CardContent>
           </Card>
         </motion.div>
@@ -213,7 +230,7 @@ export default function WalletPassport({
                       }`}>
                         <CardContent className="p-3">
                           <div className="flex items-center gap-3 mb-2">
-                            <div className={`w-12 h-12 border-2 flex items-center justify-center ${
+                            <div className={`w-12 h-12 border-2 flex items-center justify-center flex-shrink-0 ${
                               isMinted ? 'border-green-500 bg-green-900/50' :
                               canMint ? 'border-yellow-500 bg-yellow-900/50' :
                               'border-gray-700 bg-gray-900/50'
@@ -244,8 +261,11 @@ export default function WalletPassport({
                               }`} style={{ fontFamily: 'monospace' }}>
                                 {mission.title}
                               </h3>
-                              <p className="text-gray-400 text-[10px] font-bold" style={{ fontFamily: 'monospace' }}>
-                                {isMinted ? '✅ MINTED' : canMint ? '⚡ READY' : '🔒 LOCKED'}
+                              <p className="text-gray-400 text-[10px] font-bold mb-1" style={{ fontFamily: 'monospace' }}>
+                                {isMinted ? '✅ MINTED' : canMint ? '⚡ READY TO MINT' : '🔒 LOCKED'}
+                              </p>
+                              <p className="text-gray-400 text-[9px]" style={{ fontFamily: 'monospace' }}>
+                                {mission.description}
                               </p>
                             </div>
                           </div>
@@ -280,7 +300,21 @@ export default function WalletPassport({
                           {isMinted && (
                             <div className="bg-green-900/30 border border-green-500 rounded p-2 text-center">
                               <p className="text-green-400 text-[10px] font-black" style={{ fontFamily: 'monospace' }}>
-                                🎉 OWNED!
+                                🎉 OWNED ON TESTNET!
+                              </p>
+                            </div>
+                          )}
+
+                          {!mission.completed && !isMinted && (
+                            <div className="bg-gray-900/50 border border-gray-700 rounded p-2 mt-2">
+                              <p className="text-gray-400 text-[9px] font-bold mb-1" style={{ fontFamily: 'monospace' }}>
+                                📍 How to unlock:
+                              </p>
+                              <p className="text-gray-300 text-[9px]" style={{ fontFamily: 'monospace' }}>
+                                {mission.mission === 1 && '→ Go to Budget tab, save €50+'}
+                                {mission.mission === 2 && '→ Go to Convert tab, convert currency'}
+                                {mission.mission === 3 && '→ Go to Goals tab, set 3 goals'}
+                                {mission.mission === 4 && '→ Go to XRPL tab, complete transaction'}
                               </p>
                             </div>
                           )}

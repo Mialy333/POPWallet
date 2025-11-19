@@ -37,15 +37,19 @@ router.post('/createpayload', async (req, res) => {
 
     const xumm = new XummSdk(XUMM_KEY, XUMM_KEY_SECRET);
 
+    // Force testnet for all transactions
     const signInPayload = {
       txjson: transaction,
-      ...(options && { options })
+      options: {
+        ...options,
+        force_network: 'TESTNET' // Force testnet network
+      }
     };
 
     const payload = await xumm.payload.create(signInPayload, true);
 
     if (payload) {
-      console.log('✅ Xaman payload created:', payload.uuid);
+      console.log('✅ Xaman payload created (TESTNET):', payload.uuid);
     }
 
     res.json({ payload });
